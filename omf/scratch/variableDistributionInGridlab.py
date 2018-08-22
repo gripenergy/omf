@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 ''' Take a bunch of gridlab objects from IEEE 13 node feeder, figure out how their properties are distributed. '''
+from __future__ import print_function
 
 
 def doCalc():
@@ -18,11 +19,11 @@ def doCalc():
 	del bigDict['location']
 	del bigDict['temperature']
 
-	print '{'
+	print('{')
 	for key in bigDict:
 		fixedArray = map(float,bigDict[key])
-		print '"' + key + '":' + str(fixedArray) + ','
-	print '}'
+		print('"' + key + '":' + str(fixedArray) + ',')
+	print('}')
 
 '''
 Okay, here are the derived rules. Note that we had to go into Mathematica to get the histograms.

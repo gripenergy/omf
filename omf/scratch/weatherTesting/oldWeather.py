@@ -23,6 +23,7 @@ the following in a .glm:
 		reader weatherReader;
 	}
 '''
+from __future__ import print_function
 
 import os, urllib, json, csv, math, re, tempfile, shutil, urllib2, sys
 from os.path import join as pJoin
@@ -33,15 +34,15 @@ from bs4 import BeautifulSoup
 def makeClimateCsv(start, end, airport, outFilePath, cleanup=True):
 	''' Generate a climate timeseries CSV. See module docString for full help.'''
 	tempDir = tempfile.mkdtemp()
-	print "Working in", tempDir
+	print("Working in", tempDir)
 	_downloadWeather(start, end, airport, tempDir)
 	_getPeakSolar(airport, tempDir)
 	_processWeather(start, end, airport, tempDir)
 	shutil.copyfile(pJoin(tempDir,"weather.csv"), outFilePath)
-	print "Output CSV available at", outFilePath
+	print("Output CSV available at", outFilePath)
 	if cleanup:
 		shutil.rmtree(tempDir)
-		print "Cleanup true, deleted", tempDir
+		print("Cleanup true, deleted", tempDir)
 
 def _downloadWeather(start, end, airport, workDir):
 	''' Download weather CSV data to workDir. 1 file for each day between start and 
@@ -83,8 +84,8 @@ def _airportCodeToLatLon(airport):
 		latlon_split=latlon_val.split('/') #latlon_split[0] is longitude; latlon_split[1] is latitude
 		lat = float(latlon_split[1])
 		lon = float(latlon_split[0])
-	except urllib2.URLError, e:
-		print 'Requested URL generated error code:', e.code
+	except urllib2.URLError as e:
+		print('Requested URL generated error code:', e.code)
 		lat = float(raw_input('Please enter latitude manually:'))
 		lon = float(raw_input('Please enter longitude manually:'))
 	return (lat,lon)			
@@ -404,13 +405,13 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 		myFile = open(pJoin(workDir, eachFile["file"]), "r")
 		myLines = myFile.readlines()
 		if len(myLines) < 3:
-			print 'WARNING:No Data available for this day-Skipping for date:',eachFile["raw_date"]
+			print('WARNING:No Data available for this day-Skipping for date:',eachFile["raw_date"])
 			continue
 		invalid_phrase = 'No daily or hourly history data available'
 		if invalid_phrase in str(myLines[2]):
 			if startDate == eachFile["date"]:
 				sys.exit("ERROR: Given startDate has no WU recorded data. Please give a startDate with some WU data. Use Example: http://www.wunderground.com/history/airport/AJO/2012/7/2/DailyHistory.html?format=126 .Edit airport code, date to check as per your request")
-			print 'WARNING:BAD RECORD/DAY FILE-Skipping for date:',eachFile["raw_date"]
+			print('WARNING:BAD RECORD/DAY FILE-Skipping for date:',eachFile["raw_date"])
 			continue
 		#myLines = [line+","+eachFile["file"] for line in myLinesPre]
 		myData.extend(myLines)
@@ -501,7 +502,7 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 				weatherData[index][condIndex] = moreConditionDict[entry]
 				#print("index {:d} to ".format(index)+str(weatherData[index][condIndex]))
 				if entry is "":
-					print "WARNING: Weather Condition missing in WeatherUnderground datapage"
+					print("WARNING: Weather Condition missing in WeatherUnderground datapage")
 			else:
 				print("index {:d} invalid conditions '{}'".format(index, entry))
 	else:
@@ -797,11 +798,11 @@ def getWeather(tree, maxKey, weatherStart, weatherEnd, airport, workDir):
 		return True
 	except:
 		# Server errored, use climate .tmy2 instead.
-		print "ERROR: Using .tmy2 data because I couldn't connect to one of the weather servers."
+		print("ERROR: Using .tmy2 data because I couldn't connect to one of the weather servers.")
 		return False
 
 def _tests():
-	print "weather.py tests disabled to stop sending too many API requests to airport-data.com, nrel.gov, etc."
+	print("weather.py tests disabled to stop sending too many API requests to airport-data.com, nrel.gov, etc.")
 	# print "Beginning to test weather.py"
 	# workDir = tempfile.mkdtemp()
 	# print "IAD lat/lon =", _airportCodeToLatLon("IAD")

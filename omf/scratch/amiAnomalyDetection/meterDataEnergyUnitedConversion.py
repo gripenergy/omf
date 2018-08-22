@@ -1,5 +1,6 @@
 ''' Convert meter data from EU format to our anomly detection input format. '''
 '''A script to read data from inCSV, and write it to outCSV'''
+from __future__ import print_function
 import csv, json
 import os
 from os.path import join as pJoin
@@ -32,7 +33,7 @@ def dateFormatter(dateStr):
 		except:
 			continue
 	error = "We don't have a test case for our date: "+dateStr+" :("
-	print error
+	print(error)
 	return error
 
 def readToArr(inCSV):
@@ -77,7 +78,7 @@ for row in outArr:
                         outData[meterName]['dates'].append(date)
 i = 0
 for key in outData.keys():
-	print outData[key]
+	print(outData[key])
 	i = i+1
 	if i == 10:
 		break

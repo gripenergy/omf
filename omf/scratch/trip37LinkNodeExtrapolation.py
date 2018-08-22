@@ -1,3 +1,4 @@
+from __future__ import print_function
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback, copy, platform
 from os.path import join as pJoin
@@ -37,10 +38,10 @@ def highLow():
 		if lowestY > node["y"]:
 			lowestY = node["y"]
 
-	print "highestX: " + str(highestX)
-	print "lowestX: " + str(lowestX)
-	print "highestY :" + str(highestY)
-	print  "lowestY: " + str(lowestY)
+	print("highestX: " + str(highestX))
+	print("lowestX: " + str(lowestX))
+	print("highestY :" + str(highestY))
+	print("lowestY: " + str(lowestY))
 
 
 def function():
@@ -164,7 +165,7 @@ def function():
 				newLine["target"]["y"] =nodeDict[targetNodeName]["y"]
 				feederModel["links"].append(newLine)
 
-	print typeDict
+	print(typeDict)
 	modelName = "resilientDist"
 	with open(pJoin(__neoMetaModel__._omfDir, "static", "publicFeeders", feederName + '_new.omd'), 'w') as outfile:
 		json.dump(feederModel, outfile, indent = 4)

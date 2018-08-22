@@ -3,6 +3,7 @@ Put me in a directory with all the TMY3s and run me to convert them to TMY2 form
 
 Requires NREL's TMY3 to TMY2 exe and windows.
 '''
+from __future__ import print_function
 
 import os, csv, re, shutil
 
@@ -15,13 +16,13 @@ def renameTmy2s():
     for fName in allNames:
         with open(fName,'r') as inFile:
             code, city, state = inFile.readline().split()[0:3]
-            print city, state
+            print(city, state)
         shutil.copyfile(fName, state + '-' + city + '.tmy2')
 
 def convertTmy3(csvPath):
     readFile = open(csvPath, "rb")
     reader = csv.reader(readFile)
-    firstRow = reader.next()
+    firstRow = next(reader)
     origName = str(firstRow[1])
     newName = re.sub(r'\W', '', origName.replace(" ", "_"))
     firstRow[1] = '"' + newName + '"'

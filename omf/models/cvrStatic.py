@@ -1,4 +1,5 @@
 ''' Calculate CVR impacts using a targetted set of static loadflows. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback
 import math, re
@@ -8,7 +9,7 @@ from os.path import join as pJoin
 from jinja2 import Template
 from matplotlib import pyplot as plt
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

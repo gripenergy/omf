@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, signal, urllib, urllib2, subprocess, time, warnings, webbrowser
 from datetime import datetime, timedelta
 from httplib import BadStatusLine
@@ -263,29 +264,29 @@ def _test():
 	glw = GridLabWorld('6267', 'localhost', './smsSingle.glm', '2000-01-02 00:00:00')
 	glw.start()
 	# Read the clock, solar output voltage, battery state of charge, and inverter voltage input.
-	print '* Reading clock:', glw.readClock()
-	print '* Bunch of requests:', glw.doRequests([{'cmd':'read', 'obName':'solar_1', 'propName':'V_Out'},{'cmd':'readClock'}])
-	print '* Reading solar_1 output volatage (V_Out):', glw.read('solar_1', 'V_Out')
+	print('* Reading clock:', glw.readClock())
+	print('* Bunch of requests:', glw.doRequests([{'cmd':'read', 'obName':'solar_1', 'propName':'V_Out'},{'cmd':'readClock'}]))
+	print('* Reading solar_1 output volatage (V_Out):', glw.read('solar_1', 'V_Out'))
 	# print '* Reading battery_1 state of charge:', glw.read('battery_1' + 'battery_state')
-	print '* Reading inverter_1 input voltage (V_In):', glw.read('inverter_1','V_In')
+	print('* Reading inverter_1 input voltage (V_In):', glw.read('inverter_1','V_In'))
 	# Step the simulation.
 	glw.waitUntil('2000-01-02 12:00:00')
-	print '* Stepped ahead 12 hours.'
+	print('* Stepped ahead 12 hours.')
 	# Get the value and clock again.
-	print '* Reading solar_1 output voltage (V_Out):', glw.read('solar_1','V_Out')
+	print('* Reading solar_1 output voltage (V_Out):', glw.read('solar_1','V_Out'))
 	#	print '* Reading battery_1 state of charge:', glw.read('battery_1' + 'battery_state')
-	print '* Reading inverter_1 input voltage (V_In):', glw.read('inverter_1','V_In')
-	print '* Reading clock again:', glw.readClock()
+	print('* Reading inverter_1 input voltage (V_In):', glw.read('inverter_1','V_In'))
+	print('* Reading clock again:', glw.readClock())
 	# # Set a value.
 	glw.write('waterheater1','temperature','110.0')
-	print '* Setting temp to 110.'
+	print('* Setting temp to 110.')
 	# Finish the simulation and see final values.
-	print '* Resuming simulation.'
+	print('* Resuming simulation.')
 	glw.resume()
-	print '* Reading solar_1 output volatage (V_Out):', glw.read('solar_1','V_Out')
-	print '* Reading final temp:', glw.read('waterheater1','temperature')
+	print('* Reading solar_1 output volatage (V_Out):', glw.read('solar_1','V_Out'))
+	print('* Reading final temp:', glw.read('waterheater1','temperature'))
 	#	print '* Reading battery_1 state of charge:', glw.read('battery_1' + 'battery_state')
-	print '* Reading inverter_1 input voltage (V_In):', glw.read('inverter_1','V_In')
+	print('* Reading inverter_1 input voltage (V_In):', glw.read('inverter_1','V_In'))
 	# Stop the simulation.
 	glw.shutdown()
 	# proc.kill() # For those hard-to-stop servers.
@@ -295,7 +296,7 @@ def _test2():
 	import cyberAttack
 	cosimProps = {'port':'6267', 'hostname':'localhost', 'glmPath':'./smsSingle.glm', 'startTime':'2000-01-01 00:00:00','endTime':'2000-01-05 12:00:00', 'stepSizeSeconds':3600} #error with having 
 	agents = [cyberAttack.AlertAgent('2000-01-03 12:00:00')] 
-	print 'Starting co-sim with 1 agent.'
+	print('Starting co-sim with 1 agent.')
 	coord = Coordinator(agents, cosimProps)
 	# print coord.drawResults()
 
@@ -304,18 +305,18 @@ def _test3():
 	import cyberAttack
 	cosimProps = {'port':'6267', 'hostname':'localhost', 'glmPath':'./smsSingle.glm', 'startTime':'2000-01-01 00:00:00','endTime':'2000-01-05 00:00:00', 'stepSizeSeconds':3600}
 	agents = [cyberAttack.AlertAgent('2000-01-03 12:00:00'), cyberAttack.ReadAttackAgent('2000-01-02 10:00:00', 'tm_1', 'measured_power')]
-	print 'Starting co-sim with 2 agents.'
+	print('Starting co-sim with 2 agents.')
 	coord = Coordinator(agents, cosimProps)
-	print coord.drawResults()
+	print(coord.drawResults())
 
 def _test4():
 	# test with AlertAgent, ReadAttackAgent, and ReadAttackIntervalAgent
 	import cyberAttack
 	cosimProps = {'port':'6267', 'hostname':'localhost', 'glmPath':'./smsSingle.glm', 'startTime':'2000-01-01 00:00:00','endTime':'2000-01-05 00:00:00', 'stepSizeSeconds':3600}
 	agents = [cyberAttack.AlertAgent('2000-01-03 04:00:00'), cyberAttack.ReadAttackAgent('2000-01-02 10:00:00', 'tm_1', 'measured_power'), cyberAttack.ReadIntervalAttackAgent('2000-01-02 08:00:00', '2000-01-03 08:00:00', 'tm_1', 'measured_real_energy')]
-	print 'Starting co-sim with 3 agents.'
+	print('Starting co-sim with 3 agents.')
 	coord = Coordinator(agents, cosimProps)
-	print coord.drawResults()
+	print(coord.drawResults())
 
 def _test5():
 	# test with AlertAgent, ReadAttackAgent, ReadIntervalAttackAgent, and WriteAttackAgent
@@ -331,10 +332,10 @@ def _test5():
 	agents.append(cyberAttack.ReadIntervalAttackAgent('2000-01-03 12:00:00', '2000-01-04 12:00:00', 'tm_2', 'measured_reactive_power'))
 	agents.append(cyberAttack.DefendByValueAgent('battery_1', 'generator_status', 'ONLINE'))
 	agents.append(cyberAttack.WriteAttackAgent('2000-01-01 04:00:00', 'battery_1', 'generator_status', 'OFFLINE'))
-	print 'Starting co-sim with 8 agents.'
+	print('Starting co-sim with 8 agents.')
 	coord = Coordinator(agents, cosimProps)
 	# print coord.drawResults()
-	print coord.drawPrettyResults()
+	print(coord.drawPrettyResults())
 
 def _test6():
 	import cyberAttack
@@ -343,18 +344,18 @@ def _test6():
 	agents.append(cyberAttack.DefendByValueAgent('defendAreaAgent', 'solar_2', 'area', '+323 sf'))
 	agents.append(cyberAttack.CopycatAgent('copycat1', '2000-01-02 12:00:00', 'solar_1', 'area', [{'obNameToPaste':'solar_2', 'obPropToPaste': 'area'}]))
 	#agents.append(cyberAttack.ReadIntervalAttackAgent('2000-01-02 06:00:00', '2000-01-02 18:00:00', 'inverter_2', 'V_In'))
-	print 'Starting co-sim with a DefendByValueAgent and a CopycatAgent.'
+	print('Starting co-sim with a DefendByValueAgent and a CopycatAgent.')
 	coord = Coordinator(agents, cosimProps)
-	print coord.drawPrettyResults()
+	print(coord.drawPrettyResults())
 
 def _test7():
 	# test with ReadMultAttackAgent
 	import cyberAttack
 	cosimProps = {'port':'6267', 'hostname':'localhost', 'glmPath':'./smsSingle.glm', 'startTime':'2000-01-01 00:00:00','endTime':'2000-01-05 00:00:00', 'stepSizeSeconds':3600}
 	agents = [cyberAttack.ReadMultAttackAgent('2000-01-01 01:00:00', 'tm_1', ['measured_power','measured_real_energy'])]
-	print 'Starting co-sim with 1 ReadMultAttackAgent.'
+	print('Starting co-sim with 1 ReadMultAttackAgent.')
 	coord = Coordinator(agents, cosimProps)
-	print coord.drawPrettyResults()
+	print(coord.drawPrettyResults())
 
 def _test8():
 	# test with ReadMultAttackAgent and WriteMultAttackAgent
@@ -363,9 +364,9 @@ def _test8():
 	agents = []
 	agents.append(cyberAttack.ReadMultAttackAgent('ReadMultAttackAgent_1', '2000-01-01 01:00:00', 'tm_1', ['measured_power','measured_real_energy']))
 	agents.append(cyberAttack.WriteMultAttackAgent('WriteMultAttackAgent_1', '2000-01-01 02:00:00', 'tm_1', [{'obPropToAttack':'measured_power', 'value':'0.0'}, {'obPropToAttack':'measured_real_energy', 'value':'0.0'}]))
-	print 'Starting co-sim with 1 ReadMultAttackAgent and 1 WriteMultAttackAgent.'
+	print('Starting co-sim with 1 ReadMultAttackAgent and 1 WriteMultAttackAgent.')
 	coord = Coordinator(agents, cosimProps)
-	print coord.drawPrettyResults()
+	print(coord.drawPrettyResults())
 
 def _testfault():
 	import cyberAttack
@@ -373,7 +374,7 @@ def _testfault():
 	agents = []
 	agents.append(cyberAttack.ReadIntervalAttackAgent('FaultChecker', '2000-01-01 05:02:00', '2000-01-01 05:12:00', 'node711-741', 'conductor_resistance'))
 	coord = Coordinator(agents, cosimProps)
-	print coord.drawPrettyResults()
+	print(coord.drawPrettyResults())
 
 if __name__ == '__main__':
 	_testfault()

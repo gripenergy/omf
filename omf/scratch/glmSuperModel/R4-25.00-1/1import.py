@@ -15,6 +15,7 @@ XXX Bonus: single phase wind.
 OOO Bonus: Add a third case (different price signals, more utility control).
 OOO Full model update and ship to production.
 '''
+from __future__ import print_function
 
 import omf, json, random
 
@@ -120,14 +121,14 @@ attachNames = ['superSchedules.glm','superClimate.tmy2','superCpp.player', 'supe
 superAttach = {fName:open(fName).read() for fName in attachNames}
 
 # Run test the thing.
-print 'GLD OUTPUT============='
+print('GLD OUTPUT=============')
 output = omf.solvers.gridlabd.runInFilesystem(
 	baseFeed,
 	attachments=superAttach, 
 	keepFiles=True, 
 	workDir='./runningDir',
 	glmName='xOut_superModelRural.glm')
-print output['stderr'],'\n======================='
+print(output['stderr'],'\n=======================')
 
 # If everything worked out, create an OMF-formatted JSON file.
 fullFeed = dict(omf.feeder.newFeederWireframe)

@@ -1,10 +1,11 @@
 ''' Display circuit simulator in real time. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime
 from os.path import join as pJoin
 from jinja2 import Template
-import __neoMetaModel__
-from __neoMetaModel__ import *
+from . import __neoMetaModel__
+from .__neoMetaModel__ import *
 # OMF imports
 sys.path.append(__neoMetaModel__._omfDir)
 

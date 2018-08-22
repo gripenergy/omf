@@ -1,10 +1,11 @@
 ''' Evaluate demand response energy and economic savings available using PNNL VirtualBatteries (VBAT) model. '''
+from __future__ import absolute_import
 
 import json, os, shutil, subprocess, platform, collections, csv, pulp
 from os.path import join as pJoin
 from jinja2 import Template
-import __neoMetaModel__
-from __neoMetaModel__ import *
+from . import __neoMetaModel__
+from .__neoMetaModel__ import *
 import matplotlib.pyplot as plt
 import pandas as pd
 

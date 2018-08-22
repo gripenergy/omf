@@ -1,10 +1,12 @@
 ''' Powerflow results for one Gridlab instance. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, csv, webbrowser, time, shutil, datetime, subprocess, math, gc, networkx as nx,  numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib
+from functools import reduce
 matplotlib.pyplot.switch_backend('Agg')
 import multiprocessing
 from os.path import join as pJoin
@@ -12,7 +14,7 @@ from os.path import split as pSplit
 from jinja2 import Template
 import traceback
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

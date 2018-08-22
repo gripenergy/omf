@@ -1,4 +1,5 @@
 ''' Calculate the costs and benefits of energy storage from a distribution utility perspective. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback, csv, math, copy
 import multiprocessing
@@ -8,7 +9,7 @@ from  dateutil.parser import parse
 from numpy import npv
 from jinja2 import Template
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # Model metadata:
 modelName, template = metadata(__file__)

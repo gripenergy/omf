@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Count the number of registered users of the OMF locally.
 
 import os
@@ -13,5 +14,5 @@ modelDirs = [x for x in os.listdir(os.path.join(omfDir,'data','Model')) if not x
 # Combine everything and remove duplicates with sets:
 allUsers = set(userFiles).union(set(modelDirs)) - set(['public','admin','test'])
 
-print 'Number of users:', len(allUsers)
-print 'All registered emails:', list(allUsers)
+print('Number of users:', len(allUsers))
+print('All registered emails:', list(allUsers))

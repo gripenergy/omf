@@ -1,8 +1,10 @@
 ''' Convert a Milsoft Windmil feeder model into an OMF-compatible version. '''
+from __future__ import print_function
+from __future__ import absolute_import
 import os, feeder, csv, random, math, copy, locale, json, traceback, shutil
 from StringIO import StringIO
 from os.path import join as pJoin
-from solvers import gridlabd
+from .solvers import gridlabd
 from matplotlib import pyplot as plt
 import omf
 
@@ -683,10 +685,10 @@ def convert(stdString,seqString):
 				impReal = '0.05'
 				impedance = impReal+"+"+impImag
 			  if float(impImag.strip('j')) == 0:
-				print "Reactance for a transformer is 0:"
+				print("Reactance for a transformer is 0:")
 				impImag = '0.02j'
 				impedance = impReal+"+"+impImag
-				print "Hacked it to:", str(impedance)
+				print("Hacked it to:", str(impedance))
 			  transformer[myIndex+1]['impedance'] = impedance
 			  # NOTE: Windmil doesn't export any information on install type, but Gridlab only puts it in there for info reasons.
 			  # transformer[1]['install_type'] = 'POLETOP'
@@ -707,8 +709,8 @@ def convert(stdString,seqString):
 			  if float(transList[21]) > 0:
 				transformer[myIndex+1]['powerC_rating'] = transList[21]
 			#MAYBEFIX: and change these, which were added to make the transformer work on multiple phases:
-			except ValueError, e:
-			  print "ERROR FOR: ", e
+			except ValueError as e:
+			  print("ERROR FOR: ", e)
 			
 			return transformer
 		# Simple lookup table for which function we need to apply:
@@ -930,7 +932,7 @@ def convert(stdString,seqString):
 				try:
 					line_segment1['to'] = node12['name']
 				except:
-					print 'ERRRRRR', node12
+					print('ERRRRRR', node12)
 				line_segment2['name'] = glm_dict[y]['name'] + '_LINESG2'
 				line_segment2['length'] = str(float(glm_dict[y]['length'])*3/4)
 				line_segment2['from'] = node12['name']
@@ -1009,7 +1011,7 @@ def convert(stdString,seqString):
 								glm_dict[x][key]['band_center'] = nominalVoltageSwing
 								glm_dict[x][key]['band_width'] =  (bandWidthRegulator * nominalVoltageSwing) / 120
 			except:
-				print "\n   Couldn't set regulator_configuration to the swing bus nominal_voltage."
+				print("\n   Couldn't set regulator_configuration to the swing bus nominal_voltage.")
 
 	parent_voltage = {}
 	current_parents = len(parent_voltage)
@@ -1280,7 +1282,7 @@ def _latCount(name):
 			nameCount += 1
 			if 'latitude' in outGlm[key]:
 				myLatCount += 1
-	print name, 'COUNT', nameCount, 'LAT COUNT', latCount, 'SUCCESS RATE', 1.0*latCount/nameCount
+	print(name, 'COUNT', nameCount, 'LAT COUNT', latCount, 'SUCCESS RATE', 1.0*latCount/nameCount)
 
 def _tests(
 		keepFiles=False,
@@ -1314,7 +1316,7 @@ def _tests(
 				outFile.write(feeder.sortedWrite(outGlm))
 				outFileStats = os.stat(outPrefix + stdString.replace('.std','.glm') )
 			inFileStats = os.stat(pJoin(openPrefix,stdString))
-			print 'WROTE GLM FOR', stdString
+			print('WROTE GLM FOR', stdString)
 			inFileSize = inFileStats.st_size
 			outFileSize = outFileStats.st_size
 			with open(pJoin(outPrefix,'convResults.txt'),'a') as resultsFile:
@@ -1326,12 +1328,12 @@ def _tests(
 				myGraph = feeder.treeToNxGraph(outGlm)
 				feeder.latLonNxGraph(myGraph, neatoLayout=False)
 				plt.savefig(outPrefix + stdString.replace('.std','.png'))
-				print 'DREW GLM OF', stdString
+				print('DREW GLM OF', stdString)
 				with open(pJoin(outPrefix,'convResults.txt'),'a') as resultsFile:
 					resultsFile.write('DREW GLM FOR ' + stdString + "\n")
 			except:
 				exceptionCount += 1
-				print 'FAILED DRAWING', stdString
+				print('FAILED DRAWING', stdString)
 				with open(pJoin(outPrefix,'convResults.txt'),'a') as resultsFile:
 					resultsFile.write('FAILED DRAWING ' + stdString + "\n")
 			try:
@@ -1343,17 +1345,17 @@ def _tests(
 					gridlabdStderr =  output['stderr']
 				with open(outPrefix + stdString.replace('.std','.json'),'a') as outFile:
 					json.dump(output, outFile, indent=4)
-				print 'RAN GRIDLAB ON', stdString
+				print('RAN GRIDLAB ON', stdString)
 				with open(pJoin(outPrefix,'convResults.txt'),'a') as resultsFile:
 					resultsFile.write('RAN GRIDLAB ON ' + stdString + "\n")
 					resultsFile.write('STDERR: ' + gridlabdStderr + "\n\n")
 			except:
 				exceptionCount += 1
-				print 'POWERFLOW FAILED', stdString
+				print('POWERFLOW FAILED', stdString)
 				with open(pJoin(outPrefix,'convResults.txt'),'a') as resultsFile:
 					resultsFile.write('POWERFLOW FAILED ' + stdString + "\n")
 		except:
-			print 'FAILED CONVERTING', stdString
+			print('FAILED CONVERTING', stdString)
 			with open(pJoin(outPrefix,'convResults.txt'),'a') as resultsFile:
 					resultsFile.write('FAILED CONVERTING ' + stdString + "\n")
 			exceptionCount += 1

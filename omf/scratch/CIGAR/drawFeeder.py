@@ -1,3 +1,4 @@
+from __future__ import print_function
 import omf
 import sys
 from matplotlib import pyplot as plt
@@ -44,12 +45,12 @@ def voltPlot(glmPath, workDir=None, neatoLayout=False):
 	# Run Gridlab.
 	if not workDir:
 		workDir = tempfile.mkdtemp()
-		print '@@@@@@', workDir
+		print('@@@@@@', workDir)
 	gridlabOut = omf.solvers.gridlabd.runInFilesystem(tree, attachments=[], workDir=workDir)
 	with open(pJoin(workDir,'voltDump.csv'),'r') as dumpFile:
 		reader = csv.reader(dumpFile)
-		reader.next() # Burn the header.
-		keys = reader.next()
+		next(reader) # Burn the header.
+		keys = next(reader)
 		voltTable = []
 		for row in reader:
 			rowDict = {}
@@ -58,8 +59,8 @@ def voltPlot(glmPath, workDir=None, neatoLayout=False):
 			voltTable.append(rowDict)
 	with open(pJoin(workDir,'currDump.csv'),'r') as currDumpFile:
 		reader = csv.reader(currDumpFile)
-		reader.next() # Burn the header.
-		keys = reader.next()
+		next(reader) # Burn the header.
+		keys = next(reader)
 		currTable = []
 		for row in reader:
 			rowDict = {}

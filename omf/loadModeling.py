@@ -1,3 +1,4 @@
+from __future__ import print_function
 import json, urllib, xml.etree.ElementTree as ET, omf, random, os
 
 def houseSpecs(lat, lon, addressOverride=None):
@@ -138,11 +139,11 @@ def _tests():
 	outFilePath = os.path.join(omf.omfDir, 'static', 'testFiles', 'inTest_R4_modified.glm')
 	with open(outFilePath,'w+') as outFile:
 		outFile.write(omf.feeder.sortedWrite(testFeed))
-	print 'Brooklyn test:', houseSpecs(40.71418, -73.96125), '\n'
-	print 'Arlington test:', houseSpecs(38.88358, -77.10193), '\n'
-	print 'Override apartment test:', houseSpecs(38.883557,-77.102175), '\n'
-	print 'Override house test:', houseSpecs(0,0,addressOverride='1629 North Stafford Street, Arlington, VA 22207, USA'), '\n'
-	print 'Full gldHouse test:', gldHouse(0,0,addressOverride='1629 North Stafford Street, Arlington, VA 22207, USA'), '\n'
+	print('Brooklyn test:', houseSpecs(40.71418, -73.96125), '\n')
+	print('Arlington test:', houseSpecs(38.88358, -77.10193), '\n')
+	print('Override apartment test:', houseSpecs(38.883557,-77.102175), '\n')
+	print('Override house test:', houseSpecs(0,0,addressOverride='1629 North Stafford Street, Arlington, VA 22207, USA'), '\n')
+	print('Full gldHouse test:', gldHouse(0,0,addressOverride='1629 North Stafford Street, Arlington, VA 22207, USA'), '\n')
 	# print 'Apt test:', gldHouse(0,0,addressOverride='3444 N Fairfax Dr, Arlington, VA 22201, USA')
 	os.remove(outFilePath)
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import omf.feeder as feeder
 from os.path import basename
 import os
@@ -68,7 +69,7 @@ for row in inverterKeys:
 for row in meterKeys:
 	del tree[row]
 # Insert new generators into tree
-print dieselObjs
+print(dieselObjs)
 for row in dieselObjs:
 	maxKey = max(tree.keys()) +1
 	tree[maxKey] = row

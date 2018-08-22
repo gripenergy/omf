@@ -26,6 +26,7 @@ Government, including the right to distribute to other Government contractors.
 """
 
 from __future__ import division
+from __future__ import print_function
 import parseGLM
 import feederConfiguration
 import feederGenerator
@@ -123,7 +124,7 @@ def createDistributionSystem(parsedGLM, pathOut, experimentName, selectedFeederD
 		glmFile.write(glm_string)
 		glmFile.close()
 	except Exception as e:
-		print "YOU HAVE A MISTAKE IN THE SCRIPT!!!!! ", e
+		print("YOU HAVE A MISTAKE IN THE SCRIPT!!!!! ", e)
 		return False, traceback.format_exc()
 	else:
 		return True
@@ -275,7 +276,7 @@ def createMATPOWERSystem(populationDict, experimentFilePath, experimentName, mat
 
 	# warn the user if the distribution load is larger than the matpower load
 	if (totalMatpowerLoad - totalDistributionLoad) < 0:
-		print 'WARNING: you are trying to attach more load than the transmission system can support'
+		print('WARNING: you are trying to attach more load than the transmission system can support')
 
 	# determine buses that contain load and take the bus number, these will be used to attach distribution systems
 	matpowerLoadBuses = busData[busData[:, 2] > 0, 0]
@@ -551,7 +552,7 @@ def createHeatTemplate(maximumInstanceCount, selectedFlavors, flavors, populatio
 
 	# check if the maximum number of instances allowed is enough to support the experiment
 	if maximumInstanceCount < math.ceil((distributionSystemCount*distributionMemoryUsage) / float(flavors[selectedFlavors['GridLAB-D']][1])):
-		print 'WARNING: your distribution system population is too big for the resources you have'
+		print('WARNING: your distribution system population is too big for the resources you have')
 
 	
 	# determine if we need the maximum number of instances

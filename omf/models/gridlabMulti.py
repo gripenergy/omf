@@ -1,4 +1,5 @@
 ''' Powerflow results for one Gridlab instance. '''
+from __future__ import print_function
 
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, math
 import multiprocessing
@@ -14,6 +15,7 @@ from omf.solvers import gridlabd
 from omf.weather import zipCodeToClimateName
 from flask import session
 import web
+from functools import reduce
 
 # Model metadata:
 fileName = os.path.basename(__file__)
@@ -91,7 +93,7 @@ def cancel(modelDir):
 			pid = int(pidFile.read())
 			# print "pid " + str(pid)
 			os.kill(pid, 15)
-			print "PID KILLED"
+			print("PID KILLED")
 	except:
 		pass
 	# Kill runForeground process
@@ -99,7 +101,7 @@ def cancel(modelDir):
 		with open(pJoin(modelDir, "PPID.txt"), "r") as pPidFile:
 			pPid = int(pPidFile.read())
 			os.kill(pPid, 15)
-			print "PPID KILLED"
+			print("PPID KILLED")
 	except:
 		pass
 	# Remove PID, PPID, and allOutputData file if existed
@@ -108,7 +110,7 @@ def cancel(modelDir):
 			os.remove(pJoin(modelDir,fName))
 		except:
 			pass
-	print "CANCELED", modelDir
+	print("CANCELED", modelDir)
 
 def roundSig(x, sig=3):
 	''' Round to a given number of sig figs. '''
@@ -135,7 +137,7 @@ def run(modelDir, inputDict):
 		pass
 	backProc = multiprocessing.Process(target = runForeground, args = (modelDir, inputDict,))
 	backProc.start()
-	print "SENT TO BACKGROUND", modelDir
+	print("SENT TO BACKGROUND", modelDir)
 	with open(pJoin(modelDir, "PPID.txt"),"w+") as pPidFile:
 		pPidFile.write(str(backProc.pid))
 
@@ -145,7 +147,7 @@ def runForeground(modelDir, inputDict):
 	if not os.path.isdir(modelDir):
 		os.makedirs(modelDir)
 		inputDict["created"] = str(datetime.datetime.now())
-	print "STARTING TO RUN", modelDir
+	print("STARTING TO RUN", modelDir)
 	beginTime = datetime.datetime.now()
 	# Get prepare of data and clean workspace if re-run, If re-run remove all the data in the subfolders
 	for dirs in os.listdir(modelDir):
@@ -159,7 +161,7 @@ def runForeground(modelDir, inputDict):
 	for feederName in feederNames:
 		try:
 			os.remove(pJoin(modelDir, feederName, "allOutputData.json"))
-		except Exception, e:
+		except Exception as e:
 			pass
 		if not os.path.isdir(pJoin(modelDir, feederName)):
 			os.makedirs(pJoin(modelDir, feederName)) # create subfolders for feeders
@@ -305,9 +307,9 @@ def runForeground(modelDir, inputDict):
 				json.dump(inputDict, inFile, indent=4)
 			# Clean up the PID file.
 			os.remove(pJoin(modelDir, feederName,"PID.txt"))
-			print "DONE RUNNING GRIDLABMULTI", modelDir, feederName
+			print("DONE RUNNING GRIDLABMULTI", modelDir, feederName)
 		except Exception as e:
-			print "MODEL CRASHED GRIDLABMULTI", e, modelDir, feederName
+			print("MODEL CRASHED GRIDLABMULTI", e, modelDir, feederName)
 			cancel(pJoin(modelDir, feederName))
 			with open(pJoin(modelDir, feederName, "stderr.txt"), "a+") as stderrFile:
 				traceback.print_exc(file = stderrFile)
@@ -356,20 +358,20 @@ def runForeground(modelDir, inputDict):
 		# Send email to user on model success.
 		emailStatus = inputDict.get('emailStatus', 0)
 		if (emailStatus == "on"):
-			print "\n    EMAIL ALERT ON"
+			print("\n    EMAIL ALERT ON")
 			email = session['user_id']
 			try:
 				user = json.load(open("data/User/" + email + ".json"))
 				modelPath, modelName = pSplit(modelDir)
 				message = "The model " + "<i>" + str(modelName) + "</i>" + " has successfully completed running. It ran for a total of " + str(inputDict["runTime"]) + " seconds from " + str(beginTime) + ", to " + str(finishTime) + "."
 				return web.send_link(email, message, user)
-			except Exception, e:
-				print "ERROR: Failed sending model status email to user: ", email, ", with exception: \n", e
-	except Exception, e:
+			except Exception as e:
+				print("ERROR: Failed sending model status email to user: ", email, ", with exception: \n", e)
+	except Exception as e:
 		# If input range wasn't valid delete output, write error to disk.
 		cancel(modelDir)
 		thisErr = traceback.format_exc()
-		print 'ERROR IN MODEL', modelDir, thisErr
+		print('ERROR IN MODEL', modelDir, thisErr)
 		inputDict['stderr'] = thisErr
 		with open(os.path.join(modelDir,'stderr.txt'),'w') as errorFile:
 			errorFile.write(thisErr)
@@ -383,8 +385,8 @@ def runForeground(modelDir, inputDict):
 			modelPath, modelName = pSplit(modelDir)
 			message = "The model " + "<i>" + str(modelName) + "</i>" + " has failed to complete running. It ran for a total of " + str(inputDict["runTime"]) + " seconds from " + str(beginTime) + ", to " + str(finishTime) + "."
 			return web.send_link(email, message, user)
-		except Exception, e:
-			print "ERROR: Failed sending model status email to user: ", email, ", with exception: \n", e
+		except Exception as e:
+			print("ERROR: Failed sending model status email to user: ", email, ", with exception: \n", e)
 
 
 def avg(inList):

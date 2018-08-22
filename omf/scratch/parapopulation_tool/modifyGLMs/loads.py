@@ -20,6 +20,7 @@ worldwide license to reproduce, prepare derivative works, perform publicly and d
 Government, including the right to distribute to other Government contractors.
 """
 from __future__ import division
+from __future__ import print_function
 import math, random
 
 def append_residential(ResTechDict, use_flags, residential_dict, last_object_key, config_data):
@@ -1868,7 +1869,7 @@ def add_residential_EVs(glmCaseDict, config_file, use_flags, last_key=0):
 
 	else:
 		if use_flags['use_EVs'] != 0:
-			print "You asked for EVs but you did not implement residential houses so this setting was ignored"
+			print("You asked for EVs but you did not implement residential houses so this setting was ignored")
 
 	return glmCaseDict
 
@@ -1951,7 +1952,7 @@ def add_residential_storage(glmCaseDict, config_file, use_flags, last_key=0):
 			last_key = unused_key(last_key)
 	else:
 		if use_flags['use_residential_storage'] != 0:
-			print "You asked for residential battery storage, but you did not implement residential houses so this setting was ignored"
+			print("You asked for residential battery storage, but you did not implement residential houses so this setting was ignored")
 
 	return glmCaseDict
 
@@ -2036,7 +2037,7 @@ def add_utility_storage(glmCaseDict, config_file, use_flags, peakLoad, last_key=
 			last_key = unused_key(last_key)
 
 	else:
-		print "Unable to find the nodes to connect the utility scale battery storage"
+		print("Unable to find the nodes to connect the utility scale battery storage")
 	
 	return glmCaseDict
 

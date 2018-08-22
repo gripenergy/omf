@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #Hourly Day Of Week Forecasting
 # This code using an hourly day of week forecasting technique that linearizes the relationship between temperature and demand for the 4 previous
 # days same days of the week at the same hour. Take the 4 mondays at 14:00 to predict the next based on the forecasted temperature.
@@ -12,7 +13,7 @@ import matplotlib.pyplot as plt
 import json, os, shutil, math, requests, __neoMetaModel__
 from os.path import join as pJoin
 from jinja2 import Template
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 from dateutil.parser import parse as parseDt
 import datetime as dt
 

@@ -1,4 +1,5 @@
 ''' Functions for anonymizing data in OMF distribution and transmission systems.'''
+from __future__ import print_function
 
 import json, math, random, datetime, os
 from os.path import join as pJoin
@@ -549,7 +550,7 @@ def tranAddNoise(inNetwork, noisePerc):
 							randVal = parseVal + randNoise*parseVal
 							i[key][prop] = str(randVal)
 						except ValueError:
-							print 'error'
+							print('error')
 							continue
 				arrayId += 1
 

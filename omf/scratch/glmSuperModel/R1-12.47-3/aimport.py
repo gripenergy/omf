@@ -33,6 +33,7 @@ Other stuff:
 * IVVC.
 
 '''
+from __future__ import print_function
 
 
 import omf, os, json
@@ -98,7 +99,7 @@ superAttach = {fName:open(fName).read() for fName in ['superSchedules.glm','supe
 # Try a run.
 output = omf.solvers.gridlabd.runInFilesystem(baseFeed, attachments=superAttach, keepFiles=True, workDir='./runningDir', glmName='superModelTinyModified.glm')
 
-print 'GLD OUTPUT=============\n', output['stderr'],'\n======================'
+print('GLD OUTPUT=============\n', output['stderr'],'\n======================')
 
 # If everything worked out, create an OMF-formatted JSON file.
 fullFeed = dict(omf.feeder.newFeederWireframe)

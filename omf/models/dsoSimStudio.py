@@ -1,4 +1,6 @@
 ''' DSO Simulation Studio '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
@@ -8,7 +10,7 @@ from matplotlib import pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import networkx as nx
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports 
 import omf.feeder as feeder
@@ -55,12 +57,12 @@ def voltPlot(omd, workDir=None, neatoLayout=False):
 	# Run Gridlab.
 	if not workDir:
 		workDir = tempfile.mkdtemp()
-		print "gridlabD runInFilesystem with no specified workDir. Working in", workDir
+		print("gridlabD runInFilesystem with no specified workDir. Working in", workDir)
 	gridlabOut = gridlabd.runInFilesystem(tree, attachments=omd.get('attachments',{}), workDir=workDir)
 	with open(pJoin(workDir,'voltDump.csv'),'r') as dumpFile:
 		reader = csv.reader(dumpFile)
-		reader.next() # Burn the header.
-		keys = reader.next()
+		next(reader) # Burn the header.
+		keys = next(reader)
 		voltTable = []
 		for row in reader:
 			rowDict = {}

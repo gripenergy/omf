@@ -1,4 +1,5 @@
 ''' Anomaly Detection Model '''
+from __future__ import print_function
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
@@ -34,7 +35,7 @@ def run(modelDir, inputDict):
 	# Delete output file every run if it exists
 	try:
 		os.remove(pJoin(modelDir,"allOutputData.json"))
-	except Exception, e:
+	except Exception as e:
 		pass
 	# Check whether model exist or not
 	try:
@@ -63,7 +64,7 @@ def run(modelDir, inputDict):
 		# If input range wasn't valid delete output, write error to disk.
 		cancel(modelDir)
 		thisErr = traceback.format_exc()
-		print 'ERROR IN MODEL', modelDir, thisErr
+		print('ERROR IN MODEL', modelDir, thisErr)
 		inputDict['stderr'] = thisErr
 		with open(os.path.join(modelDir,'stderr.txt'),'w') as errorFile:
 			errorFile.write(thisErr)
@@ -80,7 +81,7 @@ def dateFormatter(dateStr):
 		except:
 			continue
 	error = "We don't have a test case for our date: "+dateStr+" :("
-	print error
+	print(error)
 	return error
 
 def getAMIData(inCSV):

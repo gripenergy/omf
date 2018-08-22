@@ -92,6 +92,7 @@ Government, including the right to distribute to other Government contractors.
 """
 
 from __future__ import division
+from __future__ import print_function
 import sys
 import parseGLM
 import coSimConfiguration
@@ -243,15 +244,15 @@ if __name__ == '__main__':
 	matpowerDistPath = rootPath + matpowerDistPath
 
 	# some user info
-	print 'creating experiment "{:s}" using a total of "{:0.0f}" distribution systems'.format(experimentName, distributionNumber)
+	print('creating experiment "{:s}" using a total of "{:0.0f}" distribution systems'.format(experimentName, distributionNumber))
 
 	# ensure that the input GLM specification makes sense (i.e percentages sum to one). We only warn the user as it won't break anything
 	if abs(sum([inputGLM[key][0] for key in inputGLM.keys()]) - 1) > 0.001:
-		print 'WARNING: your distribution system population sums to {:0.2f}, should be 1'.format(sum([inputGLM[key][0] for key in inputGLM.keys()]))
+		print('WARNING: your distribution system population sums to {:0.2f}, should be 1'.format(sum([inputGLM[key][0] for key in inputGLM.keys()])))
 
 	# We need to create the experiment folder. If it already exists we delete it and then create it
 	if os.path.isdir(experimentFilePath + '/' + experimentName):
-		print "experiment folder already exists, deleting and moving on..."
+		print("experiment folder already exists, deleting and moving on...")
 		shutil.rmtree(experimentFilePath + '/' + experimentName)
 	os.makedirs(experimentFilePath + '/' + experimentName)
 
@@ -321,7 +322,7 @@ if __name__ == '__main__':
 		# coSimConfiguration.createDistributionSystem(parsedDict[populationDict[feeder]['feeder']], experimentFilePath, experimentName, populationDict[feeder]['feeder'], populationDict[feeder]['name'], populationDict[feeder]['substationkV'], populationDict[feeder]['substationBus'], populationDict[feeder]['fncsSubscriptions'], randomSeed)
 
 	# code to show the user progress in creating the experiment
-	print 'creating distribution systems'
+	print('creating distribution systems')
 	time.sleep(1) # seems to be needed
 	pbar = tqdm.tqdm(desc='processing',total=len(populationDict.keys()), bar_format='{desc}|{bar}| {percentage:3.0f}%', ncols=50)
 	oldLen = 0
@@ -339,7 +340,7 @@ if __name__ == '__main__':
 	pool.join()
 
 	# some user info
-	print 'creating convenience scripts'
+	print('creating convenience scripts')
 
 	# we need to determine the simulation time as it is required by the MATPOWER wrapper
 	feederConfig, _ = feederConfiguration.feederConfiguration(populationDict[populationDict.keys()[0]]['feeder'], date_list)
@@ -354,4 +355,4 @@ if __name__ == '__main__':
 		coSimConfiguration.compileWrappers(matpowerFilePath, aggregatorFilePath, experimentFilePath, experimentName, fncsExecutablePath, matlabExecutablePath, zeroMQLibraryPath, CZMQLibraryPath, date_list)
 
 	end = time.time()
-	print 'successfully completed experiment creation in {:0.1f} seconds'.format(end - start)
+	print('successfully completed experiment creation in {:0.1f} seconds'.format(end - start))

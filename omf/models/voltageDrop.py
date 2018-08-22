@@ -1,4 +1,5 @@
 ''' Graph the voltage drop on a feeder. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
@@ -8,7 +9,7 @@ from matplotlib import pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import networkx as nx
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 plt.style.use('seaborn')
 
 # OMF imports 
@@ -58,8 +59,8 @@ def voltPlot(omd, workDir=None, neatoLayout=False):
 	gridlabOut = gridlabd.runInFilesystem(tree, attachments=omd.get('attachments',{}), workDir=workDir)
 	with open(pJoin(workDir,'voltDump.csv'),'r') as dumpFile:
 		reader = csv.reader(dumpFile)
-		reader.next() # Burn the header.
-		keys = reader.next()
+		next(reader) # Burn the header.
+		keys = next(reader)
 		voltTable = []
 		for row in reader:
 			rowDict = {}

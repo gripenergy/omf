@@ -6,6 +6,7 @@ Count the number of lines of code in this project. Ignores the data stores and l
 9.6 kLOC as of 2013-06-10.
 99.3 kLOC as of 2015-09-10.
 '''
+from __future__ import print_function
 
 import os
 
@@ -32,8 +33,8 @@ def recursiveFileList(direct):
 allSource = cleanList(recursiveFileList('..'))
 lineCountList = map(lineCount, allSource)
 
-print 'Per-file breakdown:'
+print('Per-file breakdown:')
 for pair in map(fileNameAndLineCount, allSource):
-	print pair[1], 'lines in', pair[0]
+	print(pair[1], 'lines in', pair[0])
 
-print 'Total:', sum(lineCountList), 'lines.'
+print('Total:', sum(lineCountList), 'lines.')

@@ -1,4 +1,5 @@
 ''' Container for all solvers. '''
+from __future__ import absolute_import
 
 import os, sys
 
@@ -14,6 +15,6 @@ __all__ = [x.replace('.py','') for x in os.listdir(_myDir)
 # for name in __all__: exec('import ' + name)
 
 # HACK: manual import for now due to incompatibility of Debian and NREL SAM 2015.
-import gridlabd
-import nrelsam2013
+from . import gridlabd
+from . import nrelsam2013
 

@@ -1,4 +1,5 @@
 ''' Draw America, also data. '''
+from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,7 +30,7 @@ def addOsmImage():
 	# Getting image from OSM to show map features. 
 	m = baseMapSetup()
 	fname, headers = urllib.urlretrieve('http://render.openstreetmap.org/cgi-bin/export?bbox=-80.05067825317383,38.39379044654673,-79.96004104614258,38.4377914419658&scale=27116&format=png', filename='test.png')
-	print 'Downloaded file:', fname
+	print('Downloaded file:', fname)
 	im = plt.imread(fname)
 	m.imshow(interpolation='lanczos', origin='upper')
 	#TODO: make the lat/lon coordinates agree. Because clearly the current behavior is wacky.

@@ -12,6 +12,7 @@ worldwide license to reproduce, prepare derivative works, perform publicly and d
 Government, including the right to distribute to other Government contractors.
 """
 from __future__ import division
+from __future__ import print_function
 import os
 
 def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0):
@@ -108,7 +109,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['responsive_load']:
-				print 'You asked to record responsive zip load, however I did not find any in the dictionary'
+				print('You asked to record responsive zip load, however I did not find any in the dictionary')
 
 	if 'unresponsive_load' in config_file['recorders']:
 		if have_unresp_zips == 1 and config_file['recorders']['unresponsive_load']:
@@ -122,7 +123,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['unresponsive_load']:
-				print 'You asked to record non responsive zip load, however I did not find any in the dictionary'
+				print('You asked to record non responsive zip load, however I did not find any in the dictionary')
 	if 'water_heaters' in config_file['recorders']:
 		if have_waterheaters == 1 and config_file['recorders']['water_heaters']:
 			recorder_dict[last_key] = {'object': 'collector',
@@ -232,7 +233,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			# last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['water_heaters']:
-				print 'You asked to record water heaters, however I did not find any in the dictionary'
+				print('You asked to record water heaters, however I did not find any in the dictionary')
 
 	if 'swing_node' in config_file['recorders']:
 		if config_file['recorders']['swing_node']:
@@ -248,7 +249,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 
 				last_key = unused_key(last_key)
 			else:
-				print 'You asked to record the swing node, however I did not find any in the dictionary'
+				print('You asked to record the swing node, however I did not find any in the dictionary')
 
 	if 'climate' in config_file['recorders']:
 		if config_file['recorders']['climate']:
@@ -262,7 +263,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 										   'property': 'temperature,humidity'}
 				last_key = unused_key(last_key)
 			else:
-				print 'You asked to record the climate, however I did not find any in the dictionary'
+				print('You asked to record the climate, however I did not find any in the dictionary')
 
 	if 'HVAC' in config_file['recorders']:
 		if have_houses == 1 and config_file['recorders']['HVAC']:
@@ -317,7 +318,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 
 		else:
 			if config_file['recorders']['HVAC']:
-				print 'You asked to record HVAC, however I did not find any in the dictionary'
+				print('You asked to record HVAC, however I did not find any in the dictionary')
 
 	if 'load_composition' in config_file['recorders']:
 		if config_file['recorders']['load_composition']:
@@ -449,7 +450,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 				last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['voltage_regulators']:
-				print 'You asked to record regulators, however I did not find any in the dictionary'
+				print('You asked to record regulators, however I did not find any in the dictionary')
 
 	if 'market' in config_file['recorders']:
 		if have_auction == 1 and config_file['recorders']['market']:
@@ -463,7 +464,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['market']:
-				print 'You asked to record auction, however I did not find any in the dictionary'
+				print('You asked to record auction, however I did not find any in the dictionary')
 
 	if 'TSEControllers' in config_file['recorders']:
 		if have_auction == 1 and config_file['recorders']['TSEControllers']:
@@ -487,7 +488,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 
 		else:
 			if config_file['recorders']['TSEControllers']:
-				print 'You asked to record TSE controllers, however I did not find any in the dictionary'
+				print('You asked to record TSE controllers, however I did not find any in the dictionary')
 
 	if 'EVChargers' in config_file['recorders']:
 		if have_EVs == 1 and config_file['recorders']['EVChargers']:
@@ -510,7 +511,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['EVChargers']:
-				print 'You asked to record EV chargers, however I did not find any in the dictionary'			
+				print('You asked to record EV chargers, however I did not find any in the dictionary')			
 	
 
 	if 'residentialStorage' in config_file['recorders']:
@@ -534,7 +535,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['residentialStorage']:
-				print 'You asked to record residential battery storage, however I did not find any in the dictionary'
+				print('You asked to record residential battery storage, however I did not find any in the dictionary')
 
 
 	if 'utilityStorage' in config_file['recorders']:
@@ -558,7 +559,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 			last_key = unused_key(last_key)
 		else:
 			if config_file['recorders']['utilityStorage']:
-				print 'You asked to record utility battery storage, however I did not find any in the dictionary'				
+				print('You asked to record utility battery storage, however I did not find any in the dictionary')				
 
 	return recorder_dict
 

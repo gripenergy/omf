@@ -17,6 +17,7 @@ Government, including the right to distribute to other Government contractors.
 """
 
 from __future__ import division
+from __future__ import print_function
 import loads
 import copy, random, math, time
 
@@ -240,7 +241,7 @@ def modifyFeeder(glmDict, config_data, use_flags, randomSeed=2):
 					load = 0
 					if 'number_of_houses' in glmCaseDict[x]:
 						if 'power_1' in glmCaseDict[x] or 'power_12' in glmCaseDict[x]:
-							print 'You specified both number of houses to implement along with a constant load. Constant load is ignored!'
+							print('You specified both number of houses to implement along with a constant load. Constant load is ignored!')
 						load = int(glmCaseDict[x]['number_of_houses'])*config_data['avg_house']
 						residential_dict[residential_key]['load'] = load
 						residential_dict[residential_key]['number_of_houses'] = int(glmCaseDict[x]['number_of_houses'])

@@ -4,6 +4,7 @@ Usage1: python directorConverter -std PATH_TO_F1.std -seq PATH_TO_F1.seq
 Usage2: python directorConverter -mdb PATH_TO_F1.mdb
 Output is written to the current working directory.
 '''
+from __future__ import print_function
 
 from os.path import exists, splitext, abspath
 from os import getcwd
@@ -23,12 +24,12 @@ def handleMilFile(std_path, seq_path, failure = False):
       output_file = open(output_path, 'w')
       glm, x_scale, y_scale = mil.convert(std_file.read(), seq_file.read())
       output_file.write(feeder.sortedWrite(glm))
-      print 'GLM FILE WRITTEN FOR STD/SEQ COMBO.'
+      print('GLM FILE WRITTEN FOR STD/SEQ COMBO.')
   except IOError:
-    print 'UNABLE TO WRITE GLM FILE.'
+    print('UNABLE TO WRITE GLM FILE.')
     failure = True
   except err:
-    print traceback.format_exc()
+    print(traceback.format_exc())
   finally:
     output_file.close()
   return failure
@@ -41,16 +42,16 @@ def handleMdbFile(mdb_path, modelDir, failure = False):
       glm, x_scale, y_scale = cyme.convertCymeModel(mdb_path, modelDir)
       output_file.write(feeder.sortedWrite(glm))
   except IOError:
-    print 'UNABLE TO WRITE GLM FILE.'
+    print('UNABLE TO WRITE GLM FILE.')
     failure = True
   except IndexError:
-    print 'INDEX ACCESSING ERROR IN CYME MODEL FUNCTION AT: ' + str(sys.exc_info()[2])
-    print traceback.format_exc()
+    print('INDEX ACCESSING ERROR IN CYME MODEL FUNCTION AT: ' + str(sys.exc_info()[2]))
+    print(traceback.format_exc())
   except KeyError:
-    print 'DICTIONARY ERROR IN CYME MODEL FUNCTION AT: ' + str(sys.exc_info()[2])
-  except Exception, err:
-    print str(e)
-    print traceback.format_exc()
+    print('DICTIONARY ERROR IN CYME MODEL FUNCTION AT: ' + str(sys.exc_info()[2]))
+  except Exception as err:
+    print(str(e))
+    print(traceback.format_exc())
     failure = True
   finally:
     output_file.close()
@@ -66,7 +67,7 @@ def is_valid_file(parser, file_name):
   # Check to ensure that no invalid name is being passed.
   if suffix not in valid_names:
     parser.error("FILE SUFFIX FOR %s INVALID." % file_name)
-  print "VALID MATCH CONFIRMED FOR FILE %s." % file_name
+  print("VALID MATCH CONFIRMED FOR FILE %s." % file_name)
   return file_name
 
 def main():

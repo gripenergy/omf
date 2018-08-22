@@ -1,4 +1,5 @@
 ''' Calculate solar photovoltaic system output using our special financial model. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, math, datetime as dt
 from os.path import join as pJoin
@@ -6,7 +7,7 @@ from jinja2 import Template
 from operator import sub
 import traceback
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

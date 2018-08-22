@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Script to start a web server for easier circuitjs1 testing.
 
+from __future__ import print_function
 import SimpleHTTPServer
 import SocketServer
 import webbrowser
@@ -15,7 +16,7 @@ Handler.extensions_map.update({
 
 httpd = SocketServer.TCPServer(("", PORT), Handler)
 
-print "Serving at port", PORT
+print("Serving at port", PORT)
 webbrowser.open_new('http://localhost:8000')
 httpd.serve_forever()
 

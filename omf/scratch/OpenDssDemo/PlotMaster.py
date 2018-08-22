@@ -1,4 +1,5 @@
 ''' Run OpenDSS and plot the results for arbitrary circuits. '''
+from __future__ import print_function
 
 from argparse import ArgumentParser
 
@@ -258,7 +259,7 @@ if __name__ == "__main__":
 			base_coords = pd.read_csv('coords.csv', header=None)
 		except OSError as e:
 			if e.errno == errno.EEXIST:
-				print "Error: coodinate file not created properly. Perhaps you need to set your OpenDSS data path correctly?"
+				print("Error: coodinate file not created properly. Perhaps you need to set your OpenDSS data path correctly?")
 			else:
 				raise Exception('Could not read file')
 	runDSS(filename)

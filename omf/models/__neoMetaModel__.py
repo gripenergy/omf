@@ -1,4 +1,5 @@
 """ Common functions for all models """
+from __future__ import print_function
 
 import json, os, sys, tempfile, webbrowser, math, shutil, datetime, omf, multiprocessing, traceback
 from jinja2 import Template
@@ -24,7 +25,7 @@ def heavyProcessing(modelDir, inputDict):
 		startTime = datetime.datetime.now()
 		# If we are re-running, remove output and old GLD run.
 		try: os.remove(pJoin(modelDir,"allOutputData.json"))
-		except Exception, e: pass
+		except Exception as e: pass
 		# Update the input file.
 		with open(pJoin(modelDir, "allInputData.json"),"w") as inputFile:
 			json.dump(inputDict, inputFile, indent = 4)
@@ -35,7 +36,7 @@ def heavyProcessing(modelDir, inputDict):
 		# If input range wasn't valid delete output, write error to disk.
 		cancel(modelDir)
 		thisErr = traceback.format_exc()
-		print 'ERROR IN MODEL', modelDir, thisErr
+		print('ERROR IN MODEL', modelDir, thisErr)
 		inputDict['stderr'] = thisErr
 		with open(os.path.join(modelDir,'stderr.txt'),'w') as errorFile:
 			errorFile.write(thisErr)
@@ -62,13 +63,13 @@ def run(modelDir, inputDict):
 	backProc.start()
 	with open(pJoin(modelDir, "PPID.txt"),"w+") as pPidFile:
 		pPidFile.write(str(backProc.pid))
-	print "SENT TO BACKGROUND", modelDir
+	print("SENT TO BACKGROUND", modelDir)
 
 def runForeground(modelDir, inputDict):
 	''' Run all model work immediately in the same thread. '''
 	with open(pJoin(modelDir, "PPID.txt"),"w+") as pPidFile:
 		pPidFile.write('-999') # HACK: put in an invalid PID to indicate the model is running.
-	print "FOREGROUND RUNNING", modelDir
+	print("FOREGROUND RUNNING", modelDir)
 	heavyProcessing(modelDir, inputDict)
 
 def renderTemplate(modelDir, absolutePaths=False, datastoreNames={}):
@@ -149,7 +150,7 @@ def cancel(modelDir):
 			pid = int(pidFile.read())
 			# print "pid " + str(pid)
 			os.kill(pid, 15)
-			print "PID KILLED"
+			print("PID KILLED")
 	except:
 		pass
 	# Kill runForeground process
@@ -157,7 +158,7 @@ def cancel(modelDir):
 		with open(pJoin(modelDir, "PPID.txt"), "r") as pPidFile:
 			pPid = int(pPidFile.read())
 			os.kill(pPid, 15)
-			print "PPID KILLED"
+			print("PPID KILLED")
 	except:
 		pass
 	# Remove PID, PPID, and allOutputData file if existed
@@ -166,7 +167,7 @@ def cancel(modelDir):
 			os.remove(pJoin(modelDir,fName))
 		except:
 			pass
-	print "CANCELED", modelDir
+	print("CANCELED", modelDir)
 
 def roundSig(x, sig=3):
 	''' Round to a given number of sig figs. '''

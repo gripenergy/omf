@@ -1,4 +1,6 @@
 ''' TODO: Description TBD '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
@@ -6,7 +8,7 @@ from os.path import join as pJoin
 from jinja2 import Template
 from matplotlib import pyplot as plt
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports 
 import omf.feeder as feeder
@@ -99,7 +101,7 @@ def graphify(outputFile):
 	with open(outputFile, 'r') as csvfile:
 		swingnode = csv.reader(csvfile, dialect='excel', delimiter=',')
 		for i in range(9):
-			swingnode.next()
+			next(swingnode)
 		for row in (swingnode):
 			dates.append(row[0][0:19])
 			measured_real_power.append(float(row[13]))

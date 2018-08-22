@@ -1,3 +1,4 @@
+from __future__ import print_function
 #SOURCE
 import os
 from subprocess import check_output as sh
@@ -5,9 +6,9 @@ mods = [x[0:x.find('.dll')] for x in os.listdir('C:\Program Files\GridLAB-D\lib'
 #print mods
 for mod in mods:
     try:
-        print sh('gridlabd --modhelp ' + mod)
+        print(sh('gridlabd --modhelp ' + mod))
     except:
-        print 'FAILED on module name ' + mod
+        print('FAILED on module name ' + mod)
 
 #MODULELIST
 ['assert', 'climate', 'generators', 'glsolvers', 'glxmatlab', 'market', 'msvcp80', 'msvcr80', 'network', 'powerflow', 'pthreadVC2', 'reliability', 'residential', 'tape', 'tape_file', 'tape_memory', 'tape_plot', 'test_extern_function', 'xerces-c_3_1']

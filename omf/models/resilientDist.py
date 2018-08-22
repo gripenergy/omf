@@ -1,4 +1,6 @@
 ''' Run micot-GFM, micot-RDT, and GridLAB-D to determine an optimal distribution resiliency investment. '''
+from __future__ import print_function
+from __future__ import absolute_import
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
 import platform, re
@@ -7,7 +9,7 @@ from jinja2 import Template
 from matplotlib import pyplot as plt
 import networkx as nx
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 import subprocess, random, webbrowser, multiprocessing
 import pprint as pprint
 import copy
@@ -326,7 +328,7 @@ def work(modelDir, inputDict):
 	with open(pJoin(modelDir, feederName + '.omd'), "r") as jsonIn:
 		feederModel = json.load(jsonIn)
 	# Create GFM input file.
-	print "RUNNING GFM FOR", modelDir
+	print("RUNNING GFM FOR", modelDir)
 	gfmInputTemplate = {
 		'phase_variation' : float(inputDict['phaseVariation']),
 		'chance_constraint' : float(inputDict['chanceConstraint']),
@@ -350,9 +352,9 @@ def work(modelDir, inputDict):
 		json.dump(gfmJson, outFile, indent=4)
 	# Run GFM
 	gfmBinaryPath = pJoin(__neoMetaModel__._omfDir,'solvers','gfm', 'Fragility.jar')
-	print gfmBinaryPath
-	print gfmInputFilename
-	print ' '.join(['java','-jar', gfmBinaryPath, '-r', gfmInputFilename, '-wf', inputDict['weatherImpactsFileName'],'-num','3'])
+	print(gfmBinaryPath)
+	print(gfmInputFilename)
+	print(' '.join(['java','-jar', gfmBinaryPath, '-r', gfmInputFilename, '-wf', inputDict['weatherImpactsFileName'],'-num','3']))
 	proc = subprocess.Popen(['java','-jar', gfmBinaryPath, '-r', gfmInputFilename, '-wf', inputDict['weatherImpactsFileName'],'-num','-3'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=modelDir)
 	(stdout,stderr) = proc.communicate()
 	with open(pJoin(modelDir, "gfmConsoleOut.txt"), "w") as gfmConsoleOut:
@@ -381,7 +383,7 @@ def work(modelDir, inputDict):
 		with open(pJoin(rdtInputFilePath), "w") as rdtInputFile:
 			json.dump(rdtJson, rdtInputFile, indent=4)
 	# Run GridLAB-D first time to generate xrMatrices.
-	print "RUNNING GLD FOR", modelDir
+	print("RUNNING GLD FOR", modelDir)
 	if platform.system() == "Windows":
 		omdPath = pJoin(modelDir, feederName + ".omd")
 		with open(omdPath, "r") as omd:
@@ -432,7 +434,7 @@ def work(modelDir, inputDict):
 		gridlabdRawOut = gridlabd.runInFilesystem(tree, attachments=attachments, workDir=modelDir)
 		outData['gridlabdRawOut'] = gridlabdRawOut
 	# Run RDT.
-	print "RUNNING RDT FOR", modelDir
+	print("RUNNING RDT FOR", modelDir)
 	rdtOutFile = modelDir + '/rdtOutput.json'
 	rdtSolverFolder = pJoin(__neoMetaModel__._omfDir,'solvers','rdt')
 	rdtJarPath = pJoin(rdtSolverFolder,'micot-rdt.jar')
@@ -447,7 +449,7 @@ def work(modelDir, inputDict):
 		rdtOut = json.loads(rdtRawOut)
 		json.dump(rdtOut, outFile, indent = 4)
 	# Generate and run 2nd copy of GridLAB-D model with changes specified by RDT.
-	print "RUNNING GLD FOR", modelDir
+	print("RUNNING GLD FOR", modelDir)
 	feederCopy = copy.deepcopy(feederModel)
 	lineSwitchList = []
 	for line in rdtOut['design_solution']['lines']:

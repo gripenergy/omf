@@ -1,9 +1,10 @@
 ''' Calculate solar photovoltaic system output using PVWatts. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder
@@ -101,7 +102,7 @@ def _aggData(key, aggFun, simStartDate, simLength, simLengthUnits, ssc, dat):
 	# pick a common year, ignoring the leap year, it won't affect to calculate the initHour
 	d = datetime.datetime(2013, int(u[5:7]),int(u[8:10])) 
 	# first day of the year	
-	sd = datetime.datetime(2013, 01, 01) 
+	sd = datetime.datetime(2013, 0o1, 0o1) 
 	# convert difference of datedelta object to number of hours 
 	initHour = int((d-sd).total_seconds()/3600)
 	fullData = ssc.ssc_data_get_array(dat, key)

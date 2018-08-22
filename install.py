@@ -1,3 +1,4 @@
+from __future__ import print_function
 import platform, os, sys
 
 # Note: all installations require git to clone the omf first.
@@ -77,4 +78,4 @@ elif platform.system()=="Darwin": # MacOS
 	os.system("pip install -r requirements.txt")
 	os.system("python setup.py develop")
 else:
-	print "Your operating system is not currently supported. Platform detected: " + str(platform.system()) + str(platform.linux_distribution())
+	print("Your operating system is not currently supported. Platform detected: " + str(platform.system()) + str(platform.linux_distribution()))

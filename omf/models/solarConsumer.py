@@ -1,4 +1,5 @@
 ''' Calculate solar costs and benefits for consumers. '''
+from __future__ import absolute_import
 
 import json, os, sys, webbrowser, shutil, subprocess
 from matplotlib import pyplot as plt
@@ -7,7 +8,7 @@ from datetime import timedelta as td
 from os.path import join as pJoin
 from jinja2 import Template
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 import traceback
 
 # OMF imports

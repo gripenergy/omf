@@ -1,3 +1,4 @@
+from __future__ import print_function
 import json, math, random, datetime, os
 from os.path import join as pJoin
 import csv
@@ -11,7 +12,7 @@ omfDir='C:/Users/Tuomas/SkyDrive/omf'
 FNAME=pJoin(omfDir,'omf','scratch','anonymization','randomNames', 'voltDump.csv')
 with open(FNAME, "r") as inFile:
 	voltDump = csv.reader(inFile, delimiter=',')
-	voltDump.next()
+	next(voltDump)
 	for row in voltDump:
 		randomNamesList.append(row[1:])
 
@@ -19,7 +20,7 @@ omfDir='C:/Users/Tuomas/SkyDrive/omf'
 FNAME=pJoin(omfDir,'omf','scratch','anonymization','original', 'voltDump.csv')
 with open(FNAME, "r") as inFile:
 	voltDump = csv.reader(inFile, delimiter=',')
-	voltDump.next()
+	next(voltDump)
 	for row in voltDump:
 		regularNamesList.append(row[1:])
 
@@ -30,4 +31,4 @@ with open(FNAME, "r") as inFile:
 
 # compare(reg, ran)
 
-print(regularNamesList == randomNamesList)
+print((regularNamesList == randomNamesList))

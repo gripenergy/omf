@@ -19,7 +19,8 @@ import plotly.graph_objs as go
 
 from omf.weather import pullAsos
 
-import CSSS.csss.SolarDisagg as SolarDisagg
+from CSSS import csss
+#import CSSS.csss.SolarDisagg as SolarDisagg
 
 #read measured load from csv file
 netload_csv = []
@@ -65,7 +66,7 @@ fifteenMinuteTimestamps = pd.date_range(start='2017-1-1', end='2018-1-1', closed
 pdTemps = pdTemps[pdTemps['date'].isin(fifteenMinuteTimestamps)]
 #temporary to get single day of data
 pdTemps = pdTemps[(pdTemps['date'] >= '2017-4-15') & (pdTemps['date'] < '2017-4-16')]
-print(pdTemps)
+#print(pdTemps)
 #pdTemps.set_index('date', inplace=True)
 
 #create load regressor from weather data in correct format as nparray
@@ -90,8 +91,16 @@ loadregressors = pdTemps[['temperature']].values
 #loadregressors=firstDayTemp.reshape(-1,1)
 
 #CSSS run CSSS algo for individual home scenario
-sdmod0 = SolarDisagg.SolarDisagg_IndvHome(netloads=netload, solarregressors=solarproxy, loadregressors=loadregressors)
-#
+sdmod0 = csss.SolarDisagg.SolarDisagg_IndvHome(netloads=netload, solarregressors=solarproxy, loadregressors=loadregressors)
+#add in tuning regressors once follow up information is recieved
+#outstanding question for solar truth
+#for d in range(8):
+#    source_name = 'solar_%d' % (d+1)
+#    sdmod0.addTrueValue(name=source_name, trueValue=tutorial_data['solartruth'][:,d])
+#sdmod_tune.fitTuneModels(            
+#    tuneSys=['solar_%s' % d for d in [1,2]]  ## Systems used for tuning must have true values loaded
+#    )
+#sdmod_tune.tuneAlphas() 
 sdmod0.constructSolve()
 
 #Create subplots in plotly

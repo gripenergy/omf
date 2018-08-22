@@ -2,6 +2,7 @@
 Pull weather data from various sources.
 Source options include NOAA's USCRN, Iowa State University's METAR, and Weather Underground (currently deprecated).
 '''
+from __future__ import print_function
 
 import os, urllib, urllib2, requests, csv, math, re, tempfile
 from os.path import join as pJoin
@@ -106,8 +107,8 @@ def airportCodeToLatLon(airport):
 		latlon_split=latlon_val.split('/') #latlon_split[0] is longitude; latlon_split[1] is latitude
 		lat = float(latlon_split[1])
 		lon = float(latlon_split[0])
-	except urllib2.URLError, e:
-		print 'Requested URL generated error code:', e.code
+	except urllib2.URLError as e:
+		print('Requested URL generated error code:', e.code)
 		lat = float(raw_input('Please enter latitude manually:'))
 		lon = float(raw_input('Please enter longitude manually:'))
 	return (lat,lon)
@@ -170,7 +171,7 @@ def zipCodeToClimateName(zipCode):
 	return climateName, latforpvwatts
 
 def _tests():
-	print 'weather.py tests currently disabled to keep them from sending too many HTTP requests.'
+	print('weather.py tests currently disabled to keep them from sending too many HTTP requests.')
 	# tmpdir = tempfile.mkdtemp()
 	# print "Beginning to test weather.py in", tmpdir
 	# assert ('MO-KANSAS_CITY',30) == zipCodeToClimateName(64735)

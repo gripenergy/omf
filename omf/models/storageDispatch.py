@@ -1,4 +1,5 @@
 ''' Calculate the costs and benefits of energy storage from a distribution utility perspective. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback, csv, re, math
 import multiprocessing
@@ -9,7 +10,7 @@ from dateutil.parser import parse
 from numpy import npv
 from jinja2 import Template
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 # import matplotlib.pyplot as plt #NOTE: used for debugging don't delete.
 # OMF imports
 
@@ -44,13 +45,13 @@ def work(modelDir, inputDict):
 		matchedList = [filePtrn.match(x) for x in matchedFiles]
 		fout = open(modelDir + "/" +"weather.csv","a")
 		with open(modelDir + "/" + matchedFiles[0]) as file:
-			file.next()
+			next(file)
 			for line in file:
 				fout.write(line)
 		for num in range(1,len(matchedFiles)):
 			f = open(modelDir + "/" + matchedFiles[num])
-			f.next() # skip the header
-			f.next()
+			next(f) # skip the header
+			next(f)
 			for line in f:
 				fout.write(line)
 		fout.close()

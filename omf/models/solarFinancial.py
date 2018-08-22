@@ -1,4 +1,5 @@
 ''' Calculate solar photovoltaic system output using our special financial model. '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, math, datetime as dt
 from os.path import join as pJoin
@@ -7,7 +8,7 @@ from random import random
 from numpy import irr, npv
 import xlwt, traceback
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from .__neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

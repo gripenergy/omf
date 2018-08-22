@@ -1,4 +1,5 @@
 ''' Web server for model-oriented OMF interface. '''
+from __future__ import print_function
 
 from flask import Flask, send_from_directory, request, redirect, render_template, session, abort, jsonify, Response, url_for
 from jinja2 import Template
@@ -157,10 +158,10 @@ def deleteUser():
 	# Clean up user data.
 	try:
 		shutil.rmtree("data/Model/" + username)
-	except Exception, e:
-		print "USER DATA DELETION FAILED FOR", e
+	except Exception as e:
+		print("USER DATA DELETION FAILED FOR", e)
 	os.remove("data/User/" + username + ".json")
-	print "SUCCESFULLY DELETE USER", username
+	print("SUCCESFULLY DELETE USER", username)
 	return "Success"
 
 @app.route("/new_user", methods=["POST"])
@@ -184,8 +185,8 @@ def forgotpwd(email):
 			return "We have sent a password reset link to " + email
 		else:
 			raise Exception
-	except Exception, e:
-		print "ERROR: failed to password reset user", email, "with exception", e
+	except Exception as e:
+		print("ERROR: failed to password reset user", email, "with exception", e)
 		return "We do not have a record of a user with that email address. Please click back and create an account."
 
 @app.route("/fastNewUser/<email>")
@@ -414,11 +415,11 @@ def getComponents():
 
 @app.route("/checkConversion/<modelName>", methods=["POST","GET"])
 def checkConversion(modelName):
-	print modelName
+	print(modelName)
 	owner = User.cu()
 	path = ("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt")
 	errorPath = "data/Model/"+owner+"/"+modelName+"/gridError.txt"
-	print "Check conversion status:", os.path.exists(path), "for path", path
+	print("Check conversion status:", os.path.exists(path), "for path", path)
 	if os.path.isfile(errorPath):
 		with open(errorPath) as errorFile:
 			errorString = errorFile.read()
@@ -628,7 +629,7 @@ def checkScadaLoadshape(modelName):
 		return 'Server crashed during calibration. Please attempt calibration again.'
 	pidPath = ('data/Model/' + owner + '/' + modelName + '/CPID.txt')
 	errorPath = ('data/Model/' + owner + '/' + modelName + '/error.txt')
-	print 'Check conversion status:', os.path.exists(pidPath), 'for path', pidPath
+	print('Check conversion status:', os.path.exists(pidPath), 'for path', pidPath)
 	# return error message if one exists
 	if os.path.exists(errorPath):
 		with open(errorPath) as errorFile:
@@ -689,7 +690,7 @@ def checkLoadModelingAmi(modelName):
 		return 'Server crashed during calibration. Please attempt calibration again.'
 	pidPath = ('data/Model/' + owner + '/' + modelName + '/APID.txt')
 	# errorPath = ('data/Model/' + owner + '/' + modelName + '/error.txt')
-	print 'Check conversion status:', os.path.exists(pidPath), 'for path', pidPath
+	print('Check conversion status:', os.path.exists(pidPath), 'for path', pidPath)
 	# return error message if one exists
 	# if os.path.exists(errorPath):
 	# 	with open(errorPath) as errorFile:
@@ -725,7 +726,7 @@ def cymeImportBackground(owner, modelName, feederName, feederNum, mdbNetString):
 	modelDir = "data/Model/"+owner+"/"+modelName+"/"
 	feederDir = modelDir+"/"+feederName+".omd"
 	newFeeder = dict(**feeder.newFeederWireframe)
-	print mdbNetString
+	print(mdbNetString)
 	newFeeder["tree"] = cymeToGridlab.convertCymeModel(mdbNetString, modelDir)
 	with open("./static/schedules.glm","r") as schedFile:
 		newFeeder["attachments"] = {"schedules.glm":schedFile.read()}
@@ -778,7 +779,7 @@ def newBlankFeeder(owner):
 	modelDir = os.path.join(_omfDir, "data","Model", owner, modelName)
 	try: 
 		os.remove("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt")
-		print "removed, ", ("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt")	
+		print("removed, ", ("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt"))	
 	except: pass
 	removeFeeder(owner, modelName, feederNum)
 	newSimpleFeeder(owner, modelName, feederNum, False, feederName)
@@ -796,7 +797,7 @@ def newBlankNetwork(owner):
 	modelDir = os.path.join(_omfDir, "data","Model", owner, modelName)
 	try: 
 		os.remove("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt")
-		print "removed, ", ("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt")	
+		print("removed, ", ("data/Model/"+owner+"/"+modelName+'/' + "ZPID.txt"))	
 	except: pass
 	removeNetwork(owner, modelName, networkNum)
 	newSimpleNetwork(owner, modelName, networkNum, False, networkName)
@@ -825,7 +826,7 @@ def networkData(owner, modelName, networkName):
 @flask_login.login_required
 def saveFeeder(owner, modelName, feederName):
 	''' Save feeder data. '''
-	print "Saving feeder for:%s, with model: %s, and feeder: %s"%(owner, modelName, feederName)
+	print("Saving feeder for:%s, with model: %s, and feeder: %s"%(owner, modelName, feederName))
 	if owner == User.cu() or "admin" == User.cu() or owner=="public":
 		with open("data/Model/" + owner + "/" + modelName + "/" + feederName + ".omd", "w") as outFile:
 			payload = json.loads(request.form.to_dict().get("feederObjectJson","{}"))
@@ -836,7 +837,7 @@ def saveFeeder(owner, modelName, feederName):
 @flask_login.login_required
 def saveNetwork(owner, modelName, networkName):
 	''' Save network data. '''
-	print "Saving network for:%s, with model: %s, and network: %s"%(owner, modelName, networkName)
+	print("Saving network for:%s, with model: %s, and network: %s"%(owner, modelName, networkName))
 	if owner == User.cu() or "admin" == User.cu() or owner=="public":
 		with open("data/Model/" + owner + "/" + modelName + "/" + networkName + ".omt", "w") as outFile:
 			payload = json.loads(request.form.to_dict().get("networkObjectJson","{}"))
@@ -890,7 +891,7 @@ def removeFeeder(owner, modelName, feederNum, feederName=None):
 			try:
 				feederName = str(allInput.get('feederName'+str(feederNum)))
 				os.remove(os.path.join(modelDir, feederName +'.omd'))
-			except: print "Couldn't remove feeder file in web.removeFeeder()."
+			except: print("Couldn't remove feeder file in web.removeFeeder().")
 			allInput.pop("feederName"+str(feederNum))
 			with open(modelDir+"/allInputData.json","w") as inputFile:
 				json.dump(allInput, inputFile, indent = 4)
@@ -909,7 +910,7 @@ def loadFeeder(frfeederName, frmodelName, modelName, feederNum, frUser, owner):
 		frmodelDir = "./data/Model/" + frUser + "/" + frmodelName
 	elif frUser == "public":
 		frmodelDir = "./static/publicFeeders"
-	print "Entered loadFeeder with info: frfeederName %s, frmodelName: %s, modelName: %s, feederNum: %s"%(frfeederName, frmodelName, str(modelName), str(feederNum))
+	print("Entered loadFeeder with info: frfeederName %s, frmodelName: %s, modelName: %s, feederNum: %s"%(frfeederName, frmodelName, str(modelName), str(feederNum)))
 	modelDir = "./data/Model/" + owner + "/" + modelName
 	with open(modelDir + "/allInputData.json") as inJson:
 		feederName = json.load(inJson).get('feederName'+str(feederNum))
@@ -954,7 +955,7 @@ def removeNetwork(owner, modelName, networkNum, networkName=None):
 			try:
 				networkName = str(allInput.get('networkName'+str(networkNum)))
 				os.remove(os.path.join(modelDir, networkName +'.omt'))
-			except: print "Couldn't remove network file in web.removeNetwork()."
+			except: print("Couldn't remove network file in web.removeNetwork().")
 			allInput.pop("networkName"+str(networkNum))
 			with open(modelDir+"/allInputData.json","w") as inputFile:
 				json.dump(allInput, inputFile, indent = 4)
@@ -1211,7 +1212,7 @@ def downloadModelData(owner, modelName, fullPath):
 @flask_login.login_required
 def uniqObjName(objtype, owner, name, modelName=False):
 	''' Checks if a given object type/owner/name is unique. '''
-	print "Entered uniqobjname", owner, name, modelName
+	print("Entered uniqobjname", owner, name, modelName)
 	if objtype == "Model":
 		path = "data/Model/" + owner + "/" + name
 	elif objtype == "Feeder":

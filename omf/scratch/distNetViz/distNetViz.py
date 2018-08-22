@@ -1,6 +1,7 @@
 '''
 Load an OMF feeder in to the new viewer.
 '''
+from __future__ import print_function
 
 import tempfile, shutil, os, fileinput, json, networkx as nx, platform, omf.feeder as feeder, webbrowser, sys
 
@@ -9,22 +10,22 @@ def main():
 	argCount = len(sys.argv)
 	errorMessage = 'Incorrect inputs. Usage: distNetViz -f <Path_to_feeder.glm or .omd>'
 	if argCount == 1:
-		print 'Running tests. Normal usage: distNetViz -f <Path_to_feeder.glm or .omd>'
+		print('Running tests. Normal usage: distNetViz -f <Path_to_feeder.glm or .omd>')
 		FEEDER_PATH = '../../static/publicFeeders/Simple Market System.omd'
 		DO_FORCE_LAYOUT = True
 	elif argCount == 2:
-		print 'Beginning display of ' + sys.argv[1]
+		print('Beginning display of ' + sys.argv[1])
 		DO_FORCE_LAYOUT = False
 		FEEDER_PATH = sys.argv[1]
 	elif argCount == 3:
-		print 'Force laying out and displaying ' + sys.argv[2]
+		print('Force laying out and displaying ' + sys.argv[2])
 		if sys.argv[1] == '-f':
 			DO_FORCE_LAYOUT = True
 		else:
-			print errorMessage
+			print(errorMessage)
 		FEEDER_PATH = sys.argv[2]
 	elif argCount > 3:
-		print errorMessage
+		print(errorMessage)
 	viz(FEEDER_PATH, forceLayout=DO_FORCE_LAYOUT, outputPath=None)
 
 def viz(pathToOmdOrGlm, forceLayout=False, outputPath=None):
@@ -82,13 +83,13 @@ def viz(pathToOmdOrGlm, forceLayout=False, outputPath=None):
 	# Note: you can't juse open the file in r+ mode because, based on the way the file is mapped to memory, you can only overwrite a line with another of exactly the same length.
 	for line in fileinput.input(tempDir + '/viewer.html', inplace=1):
 		if line.lstrip().startswith("<script id='feederLoadScript''>"):
-			print "" # Remove the existing load.
+			print("") # Remove the existing load.
 		elif line.lstrip().startswith("<script id='feederInsert'>"):
-			print "<script id='feederInsert'>\ntestFeeder=" + json.dumps(thisFeed, indent=4) # load up the new feeder.
+			print("<script id='feederInsert'>\ntestFeeder=" + json.dumps(thisFeed, indent=4)) # load up the new feeder.
 		elif line.lstrip().startswith("<script id='panZoomInsert'>"):
-			print "<script id='panZoomInsert'>\n" + pzData # load up the new feeder.
+			print("<script id='panZoomInsert'>\n" + pzData) # load up the new feeder.
 		else:
-			print line.rstrip()
+			print(line.rstrip())
 	# os.system('open -a "Google Chrome" ' + '"file://' + tempDir + '/viewer.html"')
 	webbrowser.open_new("file://" + tempDir + '/viewer.html')
 

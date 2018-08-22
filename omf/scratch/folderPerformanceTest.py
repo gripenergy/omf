@@ -3,6 +3,7 @@
 	Assuming 10,000 analyses (high coop estimated volume) then listing and paging MD takes
 	only 0.4 seconds total.
 '''
+from __future__ import print_function
 
 import os, json, timeit, shutil
 
@@ -45,7 +46,7 @@ if 'testDir' not in os.listdir('.'):
 allDirs = os.listdir('testDir')
 
 # Test Listing the Directory: TAKES ABOUT 0.4 SECONDS.
-print 'ListingDir Time:', min(timeit.Timer('os.listdir("testDir")', setup='import os').repeat(7, 100))
+print('ListingDir Time:', min(timeit.Timer('os.listdir("testDir")', setup='import os').repeat(7, 100)))
 
 # Test reading one "page" of results: TAKES ONLY 0.4 SECONDS.
 def readOnePage():
@@ -53,7 +54,7 @@ def readOnePage():
 	for i in xrange(30):
 		with open('testDir/' + str(i) + '/metadata.json','r') as inFile:
 			allData.append(json.load(inFile))
-print 'Getting JSON in for one page:', min(timeit.Timer('readOnePage()', setup='from __main__ import os, json, readOnePage').repeat(7, 100))
+print('Getting JSON in for one page:', min(timeit.Timer('readOnePage()', setup='from __main__ import os, json, readOnePage').repeat(7, 100)))
 
 # Cleanup func.
 cleanup = True

@@ -11,6 +11,7 @@ Government, including the right to distribute to other Government contractors.
 """
 
 from __future__ import division
+from __future__ import print_function
 import random, time
 
 def add_residential_control(feeder_dict, feederConfig, useFlags, last_key=0):
@@ -28,7 +29,7 @@ def add_residential_control(feeder_dict, feederConfig, useFlags, last_key=0):
 
 	# let's check that the control mode specified by the user makes sense.
 	if not (useFlags['houseThermostatMode'] == 'HEAT' or useFlags['houseThermostatMode'] == 'COOL'):
-		print 'WARNING: control mode is ill defined. These controllers will only work with either cooling or heating!'
+		print('WARNING: control mode is ill defined. These controllers will only work with either cooling or heating!')
 
 	# Check if last_key is already in glm dictionary
 	def unused_key(key):

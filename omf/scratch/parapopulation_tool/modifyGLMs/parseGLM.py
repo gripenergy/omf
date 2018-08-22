@@ -25,7 +25,9 @@ Government, including the right to distribute to other Government contractors.
 """
 
 from __future__ import division
+from __future__ import print_function
 import re, warnings
+from functools import reduce
 
 def parse(inputStr, filePath=True):
     """

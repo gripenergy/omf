@@ -2,13 +2,14 @@
 Requirements: GNU octave
 Tested on Linux and macOS.
 '''
+from __future__ import absolute_import
 
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback, math
 import multiprocessing, platform
 from os.path import join as pJoin
 from jinja2 import Template
-import __neoMetaModel__
-from __neoMetaModel__ import *
+from . import __neoMetaModel__
+from .__neoMetaModel__ import *
 import matplotlib
 import matplotlib.cm as cm
 from matplotlib import pyplot as plt
