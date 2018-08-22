@@ -2,7 +2,7 @@ import platform, os, sys
 
 # Note: all installations require git to clone the omf first.
 if platform.system() == "Linux" and platform.linux_distribution()[0] in ["Ubuntu","debian"]:
-	os.system("sudo apt-get -y install python-pip git unixodbc-dev libfreetype6-dev \
+	os.system("sudo apt-get -y install python-pip3 git unixodbc-dev libfreetype6-dev \
 	pkg-config python-dev python-numpy alien graphviz python-pygraphviz libgraphviz-dev \
 	python-pydot mdbtools python-tk octave libblas-dev liblapack-dev libatlas-base-dev gfortran wget")
 	try:
@@ -13,8 +13,8 @@ if platform.system() == "Linux" and platform.linux_distribution()[0] in ["Ubuntu
 	os.system("sudo alien -i gridlabd-4.0.0-1.el6.x86_64.rpm")
 	os.system("sudo apt-get install -f")
 	os.system("cd omf")
-	os.system("pip install -r requirements.txt")
-	os.system("python setup.py develop")
+	os.system("pip3 install -r requirements.txt")
+	os.system("python3 setup.py develop")
 elif platform.system() == "Linux" and platform.linux_distribution()[0]=="CentOS Linux":
 	os.system("sudo yum -y install wget git graphviz gcc xerces-c python-devel tkinter octave 'graphviz-devel.x86_64'")
 	os.system("yum --enablerepo=extras install epel-release")
