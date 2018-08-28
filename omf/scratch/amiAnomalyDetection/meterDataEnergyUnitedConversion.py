@@ -77,7 +77,7 @@ for row in outArr:
                         outData[meterName]['energyCons'].append(energyCons)
                         outData[meterName]['dates'].append(date)
 i = 0
-for key in outData.keys():
+for key in list(outData.keys()):
 	print(outData[key])
 	i = i+1
 	if i == 10:

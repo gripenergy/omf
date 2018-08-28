@@ -7,13 +7,15 @@ from __future__ import print_function
 # #####################################################################
 
 
+from builtins import range
+from builtins import object
 import string, sys, struct, math, os
 from ctypes import *
 
 myDir = os.path.dirname(__file__)
 
 c_number = c_float # must be c_double or c_float depending on how defined in sscapi.h
-class SSCAPI():
+class SSCAPI(object):
 	if sys.platform == 'win32' or sys.platform == 'cygwin':
 		if 8*struct.calcsize("P") == 64:
 			_dll = CDLL(os.path.join(myDir,"ssc64.dll")) 
@@ -241,7 +243,7 @@ class SSCAPI():
 	
 	
 	
-class API:
+class API(object):
 	# constants for return value of Info.VarType() (see sscapi.h)
 	INPUT=1
 	OUTPUT=2
@@ -273,7 +275,7 @@ class API:
 	
 
 	
-class Entry:
+class Entry(object):
 
 	def __init__(self):
 		self._idx = 0
@@ -310,7 +312,7 @@ class Entry:
 
 	
 
-class Data:
+class Data(object):
 		
 	def __init__(self, data = None):
 		if (data is None):
@@ -336,7 +338,7 @@ class Data:
 		else:
 			return None
 		
-	def next(self):
+	def __next__(self):
 		p = SSCAPI.ssc_data_next(self._data)
 		if (p is not None) and (len(p)>0):
 			return p
@@ -383,7 +385,7 @@ class Data:
 
 
 
-class Info:
+class Info(object):
 	
 	def __init__(self, module):
 		self._mod = module
@@ -458,7 +460,7 @@ class Info:
 
 
 
-class Module:
+class Module(object):
 	
 	def __init__(self, name):
 		self._mod = SSCAPI.ssc_module_create(name)

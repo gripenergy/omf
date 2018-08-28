@@ -1,6 +1,10 @@
 ''' Run micot-GFM, micot-RDT, and GridLAB-D to determine an optimal distribution resiliency investment. '''
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
 import platform, re
@@ -75,7 +79,7 @@ def convertToGFM(gfmInputTemplate, feederModel):
 	critLoads = gfmInputTemplate["criticalLoads"].strip().replace(' ', '').split(',')
 	objToFind = ['transformer', 'regulator', 'underground_line', 'overhead_line', 'fuse', 'switch']
 	lineCount = 0
-	for key, line in jsonTree.iteritems():
+	for key, line in jsonTree.items():
 		if line.get('object','') in objToFind:
 			phases = line.get('phases')
 			if 'S' in phases:
@@ -177,7 +181,7 @@ def convertToGFM(gfmInputTemplate, feederModel):
 		gfmJson['line_codes'].append(newLineCode)
 	# Bus creation:
 	objToFind = ['node', 'load', 'triplex_meter']
-	for key, bus in jsonTree.iteritems():
+	for key, bus in jsonTree.items():
 		objType = bus.get('object','')
 		# HACK: some loads can be parented to other things. Don't make buses for them.
 		hasParent = 'parent' in bus
@@ -186,8 +190,8 @@ def convertToGFM(gfmInputTemplate, feederModel):
 				'id': '', #*
 				# 'min_voltage': 0.8, # in p.u.
 				# 'max_voltage': 1.2, # in p.u.
-				'y': float(bus.get('latitude',0.0))/5000.0,
-				'x': float(bus.get('longitude',0.0))/5000.0,
+				'y': old_div(float(bus.get('latitude',0.0)),5000.0),
+				'x': old_div(float(bus.get('longitude',0.0)),5000.0),
 				# 'has_phase': [True, True, True],
 				# 'ref_voltage': [1.0, 1.0, 1.0]
 				# 'ref_voltage': 1.0 # From github.
@@ -201,12 +205,12 @@ def convertToGFM(gfmInputTemplate, feederModel):
 					# HACK: sometimes keys are strings. Sometimes not.
 					if int(key) == busNode.get('treeIndex',0):
 						# HACK: nice coords for GFM which wants lat/lon.
-						newBus['y'] = busNode.get('y')/5000.0
-						newBus['x'] = busNode.get('x')/5000.0
+						newBus['y'] = old_div(busNode.get('y'),5000.0)
+						newBus['x'] = old_div(busNode.get('x'),5000.0)
 	# Load creation:
 	objToFind = ['load']
 	phaseNames = {'A':0, 'B':1, 'C':2}
-	for key, load in jsonTree.iteritems():
+	for key, load in jsonTree.items():
 		objType = load.get('object','')
 		hasParent = 'parent' in load
 		if objType in objToFind:
@@ -227,7 +231,7 @@ def convertToGFM(gfmInputTemplate, feederModel):
 			else: #no parent, i.e. we created a bus for the load.
 				newLoad['node_id'] = load['name'] + '_bus'
 			voltage = float(load.get('nominal_voltage','4800'))
-			for phaseName, index in phaseNames.iteritems():
+			for phaseName, index in phaseNames.items():
 				impedance = 'constant_impedance_' + phaseName
 				power = 'constant_power_' + phaseName
 				current = 'constant_current_' + phaseName
@@ -236,29 +240,29 @@ def convertToGFM(gfmInputTemplate, feederModel):
 					constImped = complex(constImpedRaw)
 					realImpedance = constImped.real
 					reactiveImpedance = constImped.imag
-					newLoad['max_real_phase'][index] = abs((voltage*voltage)/realImpedance)/1000000
-					newLoad['max_reactive_phase'][index] = abs((voltage*voltage)/reactiveImpedance)/1000000
+					newLoad['max_real_phase'][index] = old_div(abs(old_div((voltage*voltage),realImpedance)),1000000)
+					newLoad['max_reactive_phase'][index] = old_div(abs(old_div((voltage*voltage),reactiveImpedance)),1000000)
 					newLoad['has_phase'][index] = True
 				if current in load:
 					constCurrRaw = load.get(current,'').replace(' ','')
 					constCurr = complex(constCurrRaw)
 					realCurr = constCurr.real
 					reactiveCurr = constCurr.imag
-					newLoad['max_real_phase'][index] = abs(voltage*realCurr)/1000000
-					newLoad['max_reactive_phase'][index] = abs(voltage*reactiveCurr)/1000000
+					newLoad['max_real_phase'][index] = old_div(abs(voltage*realCurr),1000000)
+					newLoad['max_reactive_phase'][index] = old_div(abs(voltage*reactiveCurr),1000000)
 					newLoad['has_phase'][index] = True
 				if power in load:
 					constPowerRaw = load.get(power,'').replace(' ','')
 					constPower = complex(constPowerRaw)
 					realPower = constPower.real
 					reactivePower = constPower.imag
-					newLoad['max_real_phase'][index] = abs(realPower)/1000000
-					newLoad['max_reactive_phase'][index] = abs(reactivePower)/1000000
+					newLoad['max_real_phase'][index] = old_div(abs(realPower),1000000)
+					newLoad['max_reactive_phase'][index] = old_div(abs(reactivePower),1000000)
 					newLoad['has_phase'][index] = True
 			gfmJson['loads'].append(newLoad)
 	# Generator creation:
 	genCands = gfmInputTemplate['generatorCandidates'].strip().replace(' ', '').split(',')
-	for key, gens in jsonTree.iteritems():
+	for key, gens in jsonTree.items():
 		# Check for a swing node:
 		isSwing = gens.get('bustype','') == 'SWING'
 		if gens.get('name','') in genCands or isSwing:
@@ -296,9 +300,9 @@ def genDiagram(outputDir, feederJson):
 	links = feederJson.get("links",{})
 	# Generate lat/lons from nodes and links structures.
 	for link in links:
-		for typeLink in link.keys():
+		for typeLink in list(link.keys()):
 			if typeLink in ['source', 'target']:
-				for key in link[typeLink].keys():
+				for key in list(link[typeLink].keys()):
 					if key in ['x', 'y']:
 						objName = link[typeLink]['name']
 						for x in tree:
@@ -307,7 +311,7 @@ def genDiagram(outputDir, feederJson):
 								if key=='x': leaf['latitude'] = link[typeLink][key]
 								else: leaf['longitude'] = link[typeLink][key]
 	# Remove even more things (no lat, lon or from = node without a position).
-	for key in tree.keys():
+	for key in list(tree.keys()):
 		aLat = tree[key].get('latitude')
 		aLon = tree[key].get('longitude')
 		aFrom = tree[key].get('from')
@@ -456,7 +460,7 @@ def work(modelDir, inputDict):
 		if('switch_built' in line):
 			lineSwitchList.append(line['id'])
 	# Remove nonessential lines in second model as indicated by RDT output.
-	for key in feederCopy['tree'].keys():
+	for key in list(feederCopy['tree'].keys()):
 		value = feederCopy['tree'][key]
 		if('object' in value):
 			if (value['object'] == 'underground_line') or (value['object'] == 'overhead_line'):

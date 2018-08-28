@@ -1,6 +1,10 @@
 ''' Calculate solar photovoltaic system output using our special financial model. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, math, datetime as dt
 from numpy import npv, pmt, ppmt, ipmt, irr
 from os.path import join as pJoin
@@ -60,7 +64,7 @@ def work(modelDir, inputDict):
 	ssc.ssc_data_set_number(dat, "azimuth", float(inputDict.get("azimuth", 180)))
 	# Advanced inputs with defaults.
 	ssc.ssc_data_set_number(dat, "rotlim", float(rotlim))
-	ssc.ssc_data_set_number(dat, "gamma", float(-gamma/100))
+	ssc.ssc_data_set_number(dat, "gamma", float(old_div(-gamma,100)))
 	ssc.ssc_data_set_number(dat, "tilt", manualTilt)
 	ssc.ssc_data_set_number(dat, "tilt_eq_lat", 0.0)
 	# Run PV system simulation.
@@ -94,7 +98,7 @@ def work(modelDir, inputDict):
 	invSizeWatts = inverterSizeAC * 1000
 	outData["powerOutputAcInvClipped"] = [x if x < invSizeWatts else invSizeWatts for x in outData["powerOutputAc"]]
 	try:
-		outData["percentClipped"] = 100 * (1.0 - sum(outData["powerOutputAcInvClipped"]) / sum(outData["powerOutputAc"]))
+		outData["percentClipped"] = 100 * (1.0 - old_div(sum(outData["powerOutputAcInvClipped"]), sum(outData["powerOutputAc"])))
 	except ZeroDivisionError:
 		outData["percentClipped"] = 0.0
 	#One year generation
@@ -102,10 +106,10 @@ def work(modelDir, inputDict):
 	#Annual generation for all years
 	loanYears = 25
 	outData["allYearGenerationMWh"] = {}
-	outData["allYearGenerationMWh"][1] = float(outData["oneYearGenerationWh"])/1000000
+	outData["allYearGenerationMWh"][1] = old_div(float(outData["oneYearGenerationWh"]),1000000)
 	# outData["allYearGenerationMWh"][1] = float(2019.576)
 	for i in range (2, loanYears+1):
-		outData["allYearGenerationMWh"][i] = float(outData["allYearGenerationMWh"][i-1]) * (1 - float(inputDict.get("degradation", 0.8))/100)
+		outData["allYearGenerationMWh"][i] = float(outData["allYearGenerationMWh"][i-1]) * (1 - old_div(float(inputDict.get("degradation", 0.8)),100))
 	# Summary of Results.
 	######
 	### Total Costs (sum of): Hardware Costs, Design/Engineering/PM/EPC/Labor Costs, Siteprep Costs, Construction Costs, Installation Costs, Land Costs
@@ -131,8 +135,8 @@ def work(modelDir, inputDict):
 	### Design/Engineering/PM/EPC/Labor Costs 
 	EPCmarkup = float(inputDict.get("EPCRate",0))/100 * hardwareCosts
 	#designCosts = float(inputDict.get("mechLabor",0))*160 + float(inputDict.get("elecLabor",0))*75 + float(inputDict.get("pmCost",0)) + EPCmarkup
-	hoursDesign = 160*math.sqrt(arraySizeDC/1390)
-	hoursElectrical = 80*math.sqrt(arraySizeDC/1391)
+	hoursDesign = 160*math.sqrt(old_div(arraySizeDC,1390))
+	hoursElectrical = 80*math.sqrt(old_div(arraySizeDC,1391))
 	designLabor = 65*hoursDesign
 	electricalLabor = 75*hoursElectrical
 	laborDesign = designLabor + electricalLabor + float(inputDict.get("pmCost",0)) + EPCmarkup
@@ -140,7 +144,7 @@ def work(modelDir, inputDict):
 	designCosts = materialDesign + laborDesign
 	### Siteprep Costs 
 	surveying = 2.25 * 4 * math.sqrt(landAmount*43560)
-	concrete = 8000 * math.ceil(numberInverters/2)
+	concrete = 8000 * math.ceil(old_div(numberInverters,2))
 	fencing = 6.75 * 4 * math.sqrt(landAmount*43560)
 	grading = 2.5 * 4 * math.sqrt(landAmount*43560)
 	landscaping = 750 * landAmount
@@ -177,7 +181,7 @@ def work(modelDir, inputDict):
 		["BOS", hardwareCosts - pvModules*shipping - racking*shipping - (inverters+gear)*shipping],
 		["Site Prep, Constr. Eq. and Installation", (siteMaterial + constrEquip) + (siteLabor + installCosts)]]
 	# Cost per Wdc
-	outData["costWdc"] = (totalCosts + totalFees + float(inputDict.get("interCost",0))) / (arraySizeDC * 1000)
+	outData["costWdc"] = old_div((totalCosts + totalFees + float(inputDict.get("interCost",0))), (arraySizeDC * 1000))
 	outData["capFactor"] = float(outData["oneYearGenerationWh"])/(inverterSizeAC*1000*365.25*24) * 100
 	######
 	### Loans calculations for Direct, NCREB, Lease, Tax-equity, and PPA
@@ -200,7 +204,7 @@ def work(modelDir, inputDict):
 	## Output - Direct Loan Formulas
 	projectCostsDirect = 0
 	#Output - Direct Loan [D]
-	payment = pmt(float(inputDict.get("loanRate",0))/100, loanYears, outData["totalCost"])
+	payment = pmt(old_div(float(inputDict.get("loanRate",0)),100), loanYears, outData["totalCost"])
 	interestDirectPI = outData["totalCost"] * float(inputDict.get("loanRate",0))/100
 	principleDirectPI = (-payment - interestDirectPI)
 	patronageCapitalRetiredDPI = 0
@@ -218,34 +222,34 @@ def work(modelDir, inputDict):
 		netCoopPaymentsDirect.append(OMInsuranceETCDirect[i-1] + netFinancingCostsDirect)
 		costToCustomerDirect.append((netCoopPaymentsDirect[i-1] - distAdderDirect[i-1]))
 	#Output - Direct Loan [F53] 
-	NPVLoanDirect = npv(float(inputDict.get("discRate",0))/100, [0,0] + costToCustomerDirect)
-	NPVallYearGenerationMWh = npv(float(inputDict.get("discRate",0))/100, [0,0] + outData["allYearGenerationMWh"].values())
-	Rate_Levelized_Direct = -NPVLoanDirect/NPVallYearGenerationMWh	
+	NPVLoanDirect = npv(old_div(float(inputDict.get("discRate",0)),100), [0,0] + costToCustomerDirect)
+	NPVallYearGenerationMWh = npv(old_div(float(inputDict.get("discRate",0)),100), [0,0] + list(outData["allYearGenerationMWh"].values()))
+	Rate_Levelized_Direct = old_div(-NPVLoanDirect,NPVallYearGenerationMWh)	
 	#Master Output [Direct Loan]
 	outData["levelCostDirect"] = Rate_Levelized_Direct
-	outData["costPanelDirect"] = abs(NPVLoanDirect/numberPanels)
-	outData["cost10WPanelDirect"] = (float(outData["costPanelDirect"])/panelSize)*10
+	outData["costPanelDirect"] = abs(old_div(NPVLoanDirect,numberPanels))
+	outData["cost10WPanelDirect"] = (old_div(float(outData["costPanelDirect"]),panelSize))*10
 	### NCREBs Financing
-	ncrebsRate = float(inputDict.get("NCREBRate",4.060))/100
+	ncrebsRate = old_div(float(inputDict.get("NCREBRate",4.060)),100)
 	ncrebBorrowingRate = 1.1 * ncrebsRate
 	ncrebPaymentPeriods = 44
 	ncrebCostToCustomer = []
 	# TODO ASAP: FIX ARRAY OFFSETS START 0
 	for i in range (1, len(outData["allYearGenerationMWh"])+1):
-		coopLoanPayment = 2 * pmt(ncrebBorrowingRate/2.0, ncrebPaymentPeriods, outData["totalCost"]) if i <= ncrebPaymentPeriods / 2 else 0
-		ncrebsCredit = -0.7 * (ipmt(ncrebsRate / 2, 2 * i - 1, ncrebPaymentPeriods, outData["totalCost"])
-			+ ipmt(ncrebsRate / 2, 2 * i, ncrebPaymentPeriods, outData["totalCost"])) if i <= ncrebPaymentPeriods / 2 else 0
+		coopLoanPayment = 2 * pmt(old_div(ncrebBorrowingRate,2.0), ncrebPaymentPeriods, outData["totalCost"]) if i <= old_div(ncrebPaymentPeriods, 2) else 0
+		ncrebsCredit = -0.7 * (ipmt(old_div(ncrebsRate, 2), 2 * i - 1, ncrebPaymentPeriods, outData["totalCost"])
+			+ ipmt(old_div(ncrebsRate, 2), 2 * i, ncrebPaymentPeriods, outData["totalCost"])) if i <= old_div(ncrebPaymentPeriods, 2) else 0
 		financingCost = ncrebsCredit + coopLoanPayment
 		omCost = OMInsuranceETCDirect[i - 1]
 		netCoopPayments = financingCost + omCost
 		distrAdder = distAdderDirect[i - 1]
 		costToCustomer = netCoopPayments + distrAdder
 		ncrebCostToCustomer.append(costToCustomer)
-	NPVLoanNCREB = npv(float(inputDict.get("discRate", 0))/100, [0,0] + ncrebCostToCustomer)
-	Rate_Levelized_NCREB = -NPVLoanNCREB/NPVallYearGenerationMWh	
+	NPVLoanNCREB = npv(old_div(float(inputDict.get("discRate", 0)),100), [0,0] + ncrebCostToCustomer)
+	Rate_Levelized_NCREB = old_div(-NPVLoanNCREB,NPVallYearGenerationMWh)	
 	outData["levelCostNCREB"] = Rate_Levelized_NCREB
-	outData["costPanelNCREB"] = abs(NPVLoanNCREB/numberPanels)
-	outData["cost10WPanelNCREB"] = (float(outData["costPanelNCREB"])/panelSize)*10
+	outData["costPanelNCREB"] = abs(old_div(NPVLoanNCREB,numberPanels))
+	outData["cost10WPanelNCREB"] = (old_div(float(outData["costPanelNCREB"]),panelSize))*10
 	### Lease Buyback Structure
 	#Output - Lease [C]
 	projectCostsLease = outData["totalCost"]
@@ -266,10 +270,10 @@ def work(modelDir, inputDict):
 	## Tax Lease Formulas
 	#Output - Lease [D]
 	for i in range (0, 12):
-		leaseRate = float(inputDict.get("taxLeaseRate",0))/100.0
+		leaseRate = old_div(float(inputDict.get("taxLeaseRate",0)),100.0)
 		if i>8: # Special behavior in later years:
 			leaseRate = leaseRate - 0.0261
-		leasePaymentsLease.append(-1*projectCostsLease/((1.0-(1.0/(1.0+leaseRate)**12))/(leaseRate)))
+		leasePaymentsLease.append(-1*projectCostsLease/(old_div((1.0-(old_div(1.0,(1.0+leaseRate)**12))),(leaseRate))))
 	# Last year is different.
 	leasePaymentsLease[11] += -0.2*projectCostsLease
 	for i in range (12, 25):
@@ -279,13 +283,13 @@ def work(modelDir, inputDict):
 		netCoopPaymentsLease.append(OMInsuranceETCLease[i-1]+leasePaymentsLease[i-1])
 		costToCustomerLease.append(netCoopPaymentsLease[i-1]-distAdderLease[i-1])
 	#Output - Lease [H44]. Note the extra year at the zero point to get the discounting right.
-	NPVLease = npv(float(inputDict.get("discRate", 0))/100, [0,0]+costToCustomerLease)
+	NPVLease = npv(old_div(float(inputDict.get("discRate", 0)),100), [0,0]+costToCustomerLease)
 	#Output - Lease [H49] (Levelized Cost Three Loops)
-	Rate_Levelized_Lease = -NPVLease/NPVallYearGenerationMWh
+	Rate_Levelized_Lease = old_div(-NPVLease,NPVallYearGenerationMWh)
 	#Master Output [Lease]
 	outData["levelCostTaxLease"] = Rate_Levelized_Lease
-	outData["costPanelTaxLease"] = abs(NPVLease/numberPanels)
-	outData["cost10WPanelTaxLease"] = (float(outData["costPanelTaxLease"])/float(panelSize))*10
+	outData["costPanelTaxLease"] = abs(old_div(NPVLease,numberPanels))
+	outData["cost10WPanelTaxLease"] = (old_div(float(outData["costPanelTaxLease"]),float(panelSize)))*10
 	### Tax Equity Flip Structure
 	# Tax Equity Flip Function
 	def taxEquityFlip(PPARateSixYearsTE, discRate, totalCost, allYearGenerationMWh, distAdderDirect, loanYears, firstYearLandLeaseCosts, firstYearOPMainCosts, firstYearInsuranceCosts, numberPanels):
@@ -317,7 +321,7 @@ def work(modelDir, inputDict):
 		#Output Tax Equity Flip [D]
 		#TEI Calcs [E]
 		financeCostOfCashTE = 0
-		coopFinanceRateTE = 2.7/100
+		coopFinanceRateTE = old_div(2.7,100)
 		if (coopFinanceRateTE == 0):
 			financeCostOfCashTE = 0
 		else:
@@ -332,7 +336,7 @@ def work(modelDir, inputDict):
 			else:
 				cashToSPEOForPPATE.append(0)
 		#Output Tax Equity Flip [F]
-		derivedCostEnergyTE = cashToSPEOForPPATE[0]/allYearGenerationMWh[1]
+		derivedCostEnergyTE = old_div(cashToSPEOForPPATE[0],allYearGenerationMWh[1])
 		#Output Tax Equity Flip [G]
 		#TEI Calcs [F]	[U] [V]
 		landLeaseTE = []
@@ -365,7 +369,7 @@ def work(modelDir, inputDict):
 		cashRevenueTE = -totalCost * (1 - 0.53)
 		buyoutAmountTE = 0
 		for i in range (1, len(EBITDATEREDUCED) + 1):
-			buyoutAmountTE = buyoutAmountTE + EBITDATEREDUCED[i-1]/(math.pow(1+0.12,i))
+			buyoutAmountTE = buyoutAmountTE + old_div(EBITDATEREDUCED[i-1],(math.pow(1+0.12,i)))
 		buyoutAmountTE = buyoutAmountTE * 0.05
 		cashFromBlockerTE = - (buyoutAmountTE) + 0.0725 * cashRevenueTE
 		#Output Tax Equity Flip [K] [L]
@@ -376,9 +380,9 @@ def work(modelDir, inputDict):
 				netCoopPaymentsTaxEquity.append(financeCostCashTaxEquity + cashFromSPEToBlockerTE[i-1] + cashToSPEOForPPATE[i-1] + OMInsuranceETCTE[i-1])
 			costToCustomerTaxEquity.append(netCoopPaymentsTaxEquity[i-1] - distAdderTaxEquity[i-1])
 		#Output Tax Equity Flip [L37]
-		NPVLoanTaxEquity = npv(float(inputDict.get("discRate",0))/100, [0, 0] + costToCustomerTaxEquity)
+		NPVLoanTaxEquity = npv(old_div(float(inputDict.get("discRate",0)),100), [0, 0] + costToCustomerTaxEquity)
 		#Output - Tax Equity [F42] 
-		Rate_Levelized_TaxEquity = -NPVLoanTaxEquity/NPVallYearGenerationMWh
+		Rate_Levelized_TaxEquity = old_div(-NPVLoanTaxEquity,NPVallYearGenerationMWh)
 		#TEI Calcs - Achieved Return [AW 21]
 			#[AK]
 		MACRDepreciation = []
@@ -395,7 +399,7 @@ def work(modelDir, inputDict):
 		cashRevenueTEI.append(-totalCost*0.53)
 		for i in range (1,7):
 			cashRevenueTEI.append(EBITDATE[i-1]*0.99)
-			slDepreciation.append(totalCost/25)
+			slDepreciation.append(old_div(totalCost,25))
 			totalDistributions.append(-cashRevenueTEI[i])
 		#[AJ]						
 		ITC = totalCost*0.9822*0.3*0.99
@@ -417,7 +421,7 @@ def work(modelDir, inputDict):
 		#AO-1 + AN + AI + AK + AJ
 		for i in range (0, 5):
 			reallocatedIncLoss.append(capitalAcct[i+1] + totalDistributions[i+1] + MACRDepreciation[i+1] + cashRevenueTEI[i+2])
-			ratioTE.append(reallocatedIncLoss[i]/(cashRevenueTEI[i+2] + MACRDepreciation[i+1]))
+			ratioTE.append(old_div(reallocatedIncLoss[i],(cashRevenueTEI[i+2] + MACRDepreciation[i+1])))
 			taxableIncLoss.append(cashRevenueTEI[i+2]+MACRDepreciation[i+1]-ratioTE[i+1]*(MACRDepreciation[i+1]-totalDistributions[i+1]))
 			condition = capitalAcct[i+1] + taxableIncLoss[i+2] + totalDistributions[i+1]
 			if condition > 0:
@@ -468,21 +472,21 @@ def work(modelDir, inputDict):
 		return cumulativeIRR, Rate_Levelized_TaxEquity, NPVLoanTaxEquity
 	# Function Calls Mega Sized Tax Equity Function Above
 	z = 0
-	PPARateSixYearsTE = z / 100
-	nGoal = float(inputDict.get("taxEquityReturn",0))/100
+	PPARateSixYearsTE = old_div(z, 100)
+	nGoal = old_div(float(inputDict.get("taxEquityReturn",0)),100)
 	nValue = 0
 	for p in range (0, 3):
 		while ((z < 50000) and (nValue < nGoal)):
 			achievedReturnTE, Rate_Levelized_TaxEquity, NPVLoanTaxEquity = taxEquityFlip(PPARateSixYearsTE, inputDict.get("discRate", 0), outData["totalCost"], outData["allYearGenerationMWh"], distAdderDirect, loanYears, firstYearLandLeaseCosts, firstYearOPMainCosts, firstYearInsuranceCosts, numberPanels)
 			nValue = achievedReturnTE
 			z = z + math.pow(10,p)
-			PPARateSixYearsTE = z/100.0
+			PPARateSixYearsTE = old_div(z,100.0)
 	z = z - math.pow(10,p)	
-	PPARateSixYearsTE = z/100
+	PPARateSixYearsTE = old_div(z,100)
 	#Master Output [Tax Equity]
 	outData["levelCostTaxEquity"] = Rate_Levelized_TaxEquity
-	outData["costPanelTaxEquity"] = abs(NPVLoanTaxEquity/numberPanels)
-	outData["cost10WPanelTaxEquity"] = (float(outData["costPanelTaxEquity"])/panelSize)*10
+	outData["costPanelTaxEquity"] = abs(old_div(NPVLoanTaxEquity,numberPanels))
+	outData["cost10WPanelTaxEquity"] = (old_div(float(outData["costPanelTaxEquity"]),panelSize))*10
 	### PPA Comparison
 	#Output - PPA [F]
 	distAdderPPA = distAdderDirect
@@ -499,12 +503,12 @@ def work(modelDir, inputDict):
 	## PPA Formulas
 	#Output - PPA [G] [H]
 	for i in range (1, len(outData["allYearGenerationMWh"])+1):
-		netCoopPaymentsPPA.append(-outData["allYearGenerationMWh"][i]*float(inputDict.get("firstYearEnergyCostPPA",0))*math.pow((1 + float(inputDict.get("annualEscRatePPA", 0))/100),(i-1)))
+		netCoopPaymentsPPA.append(-outData["allYearGenerationMWh"][i]*float(inputDict.get("firstYearEnergyCostPPA",0))*math.pow((1 + old_div(float(inputDict.get("annualEscRatePPA", 0)),100)),(i-1)))
 		costToCustomerPPA.append(netCoopPaymentsPPA[i-1]-distAdderPPA[i-1])
 	#Output - PPA [H58] 
-	NPVLoanPPA = npv(float(inputDict.get("discRate", 0))/100, [0,0]+costToCustomerPPA)
+	NPVLoanPPA = npv(old_div(float(inputDict.get("discRate", 0)),100), [0,0]+costToCustomerPPA)
 	#Output - PPA [F65] 
-	Rate_Levelized_PPA = -NPVLoanPPA/NPVallYearGenerationMWh
+	Rate_Levelized_PPA = old_div(-NPVLoanPPA,NPVallYearGenerationMWh)
 	#Master Output [PPA]
 	outData["levelCostPPA"] = Rate_Levelized_PPA
 	outData["firstYearCostKWhPPA"] = float(inputDict.get("firstYearEnergyCostPPA",0))

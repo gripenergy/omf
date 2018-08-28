@@ -43,7 +43,7 @@ def writeNewGlmAndPlayers(omdPath, amiPath, outputDir):
 	# All meter names we have in the AMI data set.
 	meterNames = set([x.get('meterName','') for x in amiData])
 	# Attach all the players.
-	for key in feederObj.keys():
+	for key in list(feederObj.keys()):
 		objName = feederObj[key].get('name','')
 		dataPhases = set([x.get('phase','') for x in amiData if x.get('meterName','') == objName])
 		# Handle primary system loads.

@@ -1,6 +1,12 @@
 ''' Calculate CVR impacts using a targetted set of dynamic loadflows. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess
 import math, re, traceback, csv, calendar, random
 import multiprocessing
@@ -33,7 +39,7 @@ def work(modelDir,inputDict):
 		localTree = feederJson.get("tree", {})
 		attachments = feederJson.get("attachments", {})
 	for key in localTree:
-		if "solver_method" in localTree[key].keys():
+		if "solver_method" in list(localTree[key].keys()):
 			localTree[key]["solver_method"] = 'FBS'
 	#find the swing bus and recorder attached to substation
 	try:
@@ -108,7 +114,7 @@ def work(modelDir,inputDict):
 			'parent': localTree[key]['name'],
 			'property': 'switchA,switchB,switchC'})
 	#attach recorder process
-	biggest = 1 + max([int(k) for k in localTree.keys()])
+	biggest = 1 + max([int(k) for k in list(localTree.keys())])
 	for index, rec in enumerate(recorders):
 		localTree[biggest + index] = rec
 	#run a reference load flow
@@ -136,7 +142,7 @@ def work(modelDir,inputDict):
 			if localTree[key].get('file','').startswith('Z'):
 				localTree[key]['file'] = localTree[key].get('file','').replace('Z','NewZ')
 	#create volt-var control object
-	max_key = max([int(key) for key in localTree.keys()])
+	max_key = max([int(key) for key in list(localTree.keys())])
 	localTree[max_key+1] = {'object' : 'volt_var_control',
 		'name' : 'IVVC1',
 		'control_method' : 'ACTIVE',
@@ -159,10 +165,10 @@ def work(modelDir,inputDict):
 	#total real and imaginary losses as a function of time
 	def vecSum(u,v):
 		''' Add vectors u and v element-wise. Return has len <= len(u) and <=len(v). '''
-		return map(sum, zip(u,v))
+		return list(map(sum, list(zip(u,v))))
 	def zeroVec(length):
 		''' Give a zero vector of input length. '''
-		return [0 for x in xrange(length)]
+		return [0 for x in range(length)]
 	(realLoss, imagLoss, realLossnew, imagLossnew) = (zeroVec(int(HOURS)) for x in range(4))
 	for device in ['ZlossesOverhead.csv','ZlossesTransformer.csv','ZlossesUnderground.csv']:
 		for letter in ['A','B','C']:
@@ -173,7 +179,7 @@ def work(modelDir,inputDict):
 	#voltage calculations and tap calculations
 	def divby2(u):
 		'''divides by 2'''
-		return u/2
+		return old_div(u,2)
 	lowVoltage = []
 	meanVoltage = []
 	highVoltage = []
@@ -192,24 +198,24 @@ def work(modelDir,inputDict):
 		if capKeys != []:
 			switch[letter] = output['ZcapSwitch' + str(int(capKeys[0])) + '.csv']['switch'+ letter]
 			switchnew[letter] = output1['NewZcapSwitch' + str(int(capKeys[0])) + '.csv']['switch'+ letter]
-		volt[letter] = map(returnMag,output['ZsubstationBottom.csv']['voltage_'+letter])
-		voltnew[letter] = map(returnMag,output1['NewZsubstationBottom.csv']['voltage_'+letter])
-	lowVoltage = map(divby2,output['ZvoltageJiggle.csv']['min(voltage_12.mag)'])
-	lowVoltagenew = map(divby2,output1['NewZvoltageJiggle.csv']['min(voltage_12.mag)'])
-	meanVoltage = map(divby2,output['ZvoltageJiggle.csv']['mean(voltage_12.mag)'])
-	meanVoltagenew = map(divby2,output1['NewZvoltageJiggle.csv']['mean(voltage_12.mag)'])
-	highVoltage = map(divby2,output['ZvoltageJiggle.csv']['max(voltage_12.mag)'])
-	highVoltagenew = map(divby2,output1['NewZvoltageJiggle.csv']['max(voltage_12.mag)'])
+		volt[letter] = list(map(returnMag,output['ZsubstationBottom.csv']['voltage_'+letter]))
+		voltnew[letter] = list(map(returnMag,output1['NewZsubstationBottom.csv']['voltage_'+letter]))
+	lowVoltage = list(map(divby2,output['ZvoltageJiggle.csv']['min(voltage_12.mag)']))
+	lowVoltagenew = list(map(divby2,output1['NewZvoltageJiggle.csv']['min(voltage_12.mag)']))
+	meanVoltage = list(map(divby2,output['ZvoltageJiggle.csv']['mean(voltage_12.mag)']))
+	meanVoltagenew = list(map(divby2,output1['NewZvoltageJiggle.csv']['mean(voltage_12.mag)']))
+	highVoltage = list(map(divby2,output['ZvoltageJiggle.csv']['max(voltage_12.mag)']))
+	highVoltagenew = list(map(divby2,output1['NewZvoltageJiggle.csv']['max(voltage_12.mag)']))
 	#energy calculations
 	whEnergy = []
 	whLosses = []
 	whLoads = []
-	whEnergy.append(sum(p)/10**6)
-	whLosses.append(sum(realLoss)/10**6)
-	whLoads.append((sum(p)-sum(realLoss))/10**6)
-	whEnergy.append(sum(pnew)/10**6)
-	whLosses.append(sum(realLossnew)/10**6)
-	whLoads.append((sum(pnew)-sum(realLossnew))/10**6)
+	whEnergy.append(old_div(sum(p),10**6))
+	whLosses.append(old_div(sum(realLoss),10**6))
+	whLoads.append(old_div((sum(p)-sum(realLoss)),10**6))
+	whEnergy.append(old_div(sum(pnew),10**6))
+	whLosses.append(old_div(sum(realLossnew),10**6))
+	whLoads.append(old_div((sum(pnew)-sum(realLossnew)),10**6))
 	indices = ['No IVVC', 'With IVVC']
 	# energySalesRed = (whLoads[1]-whLoads[0])*(inputDict['wholesaleEnergyCostPerKwh'])*1000
 	# lossSav = (whLosses[0]-whLosses[1])*inputDict['wholesaleEnergyCostPerKwh']*1000
@@ -230,8 +236,8 @@ def work(modelDir,inputDict):
 	plt.figure("real power")
 	plt.title("Real Power at substation")
 	plt.ylabel("substation real power (MW)")
-	pMW = [element/10**6 for element in p]
-	pMWn = [element/10**6 for element in pnew]
+	pMW = [old_div(element,10**6) for element in p]
+	pMWn = [old_div(element,10**6) for element in pnew]
 	pw = plt.plot(pMW)
 	npw = plt.plot(pMWn)
 	plt.legend([pw[0], npw[0]], ['NO IVVC','WITH IVVC'],bbox_to_anchor=(0., 0.915, 1., .102), loc=3,
@@ -240,8 +246,8 @@ def work(modelDir,inputDict):
 	plt.figure("Reactive power")
 	plt.title("Reactive Power at substation")
 	plt.ylabel("substation reactive power (MVAR)")
-	qMVAR = [element/10**6 for element in q]
-	qMVARn = [element/10**6 for element in qnew]
+	qMVAR = [old_div(element,10**6) for element in q]
+	qMVARn = [old_div(element,10**6) for element in qnew]
 	iw = plt.plot(qMVAR)
 	niw = plt.plot(qMVARn)
 	plt.legend([iw[0], niw[0]], ['NO IVVC','WITH IVVC'],bbox_to_anchor=(0., 0.915, 1., .102), loc=3,
@@ -369,16 +375,16 @@ def work(modelDir,inputDict):
 		month = monthNames.index(monthElement)
 		index1 = int(previndex)
 		index2 = int(min((index1 + int(monthHours[month])), simRealLength))
-		monthPeak[monthElement] = max(p[index1:index2])/1000.0
-		monthPeakNew[monthElement] = max(pnew[index1:index2])/1000.0
+		monthPeak[monthElement] = old_div(max(p[index1:index2]),1000.0)
+		monthPeakNew[monthElement] = old_div(max(pnew[index1:index2]),1000.0)
 		peakSaveDollars[monthElement] = (monthPeak[monthElement]-monthPeakNew[monthElement])*float(inputDict['peakDemandCost'+str(monthToSeason[monthElement])+'PerKw'])
-		lossRedDollars[monthElement] = (sum(realLoss[index1:index2])/1000.0 - sum(realLossnew[index1:index2])/1000.0)*(float(inputDict['wholesaleEnergyCostPerKwh']))
-		energyLostDollars[monthElement] = (sum(p[index1:index2])/1000.0  - sum(pnew[index1:index2])/1000.0  - sum(realLoss[index1:index2])/1000.0
-			+ sum(realLossnew[index1:index2])/1000.0 )*(float(inputDict['wholesaleEnergyCostPerKwh']) - float(inputDict['retailEnergyCostPerKwh']))
+		lossRedDollars[monthElement] = (old_div(sum(realLoss[index1:index2]),1000.0) - old_div(sum(realLossnew[index1:index2]),1000.0))*(float(inputDict['wholesaleEnergyCostPerKwh']))
+		energyLostDollars[monthElement] = (old_div(sum(p[index1:index2]),1000.0)  - old_div(sum(pnew[index1:index2]),1000.0)  - old_div(sum(realLoss[index1:index2]),1000.0)
+			+ old_div(sum(realLossnew[index1:index2]),1000.0) )*(float(inputDict['wholesaleEnergyCostPerKwh']) - float(inputDict['retailEnergyCostPerKwh']))
 		previndex = index2
 	#money charts
 	fig = plt.figure("cost benefit barchart",figsize=(10,8))
-	ticks = range(len(simMonthList))
+	ticks = list(range(len(simMonthList)))
 	ticks1 = [element+0.15 for element in ticks]
 	ticks2 = [element+0.30 for element in ticks]
 	eld = [energyLostDollars[month] for month in simMonthList]
@@ -397,7 +403,7 @@ def work(modelDir,inputDict):
 	fig = plt.figure("cost benefit barchart",figsize=(10,5))
 	annualSavings = sum(eld) + sum(lrd) + sum(psd)
 	annualSave = lambda x:(annualSavings - float(inputDict['omCost'])) * x - float(inputDict['capitalCost'])
-	simplePayback = float(inputDict['capitalCost'])/(annualSavings - float(inputDict['omCost']))
+	simplePayback = old_div(float(inputDict['capitalCost']),(annualSavings - float(inputDict['omCost'])))
 	plt.xlabel('Year After Installation')
 	plt.xlim(0,30)
 	plt.ylabel('Cumulative Savings ($)')
@@ -524,7 +530,7 @@ def returnMag(complexStr):
 			else:
 				real = float(complexStr1)*float(sign)
 				imag = 0.0
-	return (math.sqrt(real**2+imag**2))/60.0
+	return old_div((math.sqrt(real**2+imag**2)),60.0)
 
 def _tests():
 	# Location

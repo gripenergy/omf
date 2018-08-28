@@ -1,7 +1,14 @@
 from __future__ import print_function
-import os, signal, urllib, urllib2, subprocess, time, warnings, webbrowser
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
+import os, signal, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, subprocess, time, warnings, webbrowser
 from datetime import datetime, timedelta
-from httplib import BadStatusLine
+from http.client import BadStatusLine
 
 def parseDt(dtString):
 	'Parse GridLAB-D date time strings'
@@ -23,7 +30,7 @@ class Coordinator(object):
 		startDt = parseDt(cosimProps['startTime'])
 		endDt = parseDt(cosimProps['endTime'])
 		stepDelta = timedelta(seconds=cosimProps['stepSizeSeconds'])
-		stepNum = (endDt - startDt).total_seconds() / cosimProps['stepSizeSeconds']
+		stepNum = old_div((endDt - startDt).total_seconds(), cosimProps['stepSizeSeconds'])
 		stepDts = [startDt + stepDelta * x  for x in range(int(stepNum))]
 		# Initialize the log.
 		self.log = []
@@ -202,12 +209,12 @@ class GridLabWorld(object):
 		try:
 			# HACK: we don't need full URL encoding right?
 			niceUrl = self.baseUrl + 'control/pauseat=' + targetTime.replace(' ','%20')
-			urllib2.urlopen(niceUrl).read()
+			urllib.request.urlopen(niceUrl).read()
 			currentTime = None
 			while currentTime != targetTime:
 				time.sleep(0.2)
 				#HACK: Read clock and also drop the timezone because it causes problems.
-				currentTime = urllib2.urlopen(self.baseUrl + 'raw/clock').read()[0:-4]
+				currentTime = urllib.request.urlopen(self.baseUrl + 'raw/clock').read()[0:-4]
 		except:
 			warnings.warn("Wait until " + targetTime + " failed!")
 
@@ -215,7 +222,7 @@ class GridLabWorld(object):
 		'Read a value from the GLD simulation.'
 		try:
 			# print obName + "  " + propName
-			return urllib2.urlopen(self.baseUrl + 'raw/' + obName + '/' + propName).read()
+			return urllib.request.urlopen(self.baseUrl + 'raw/' + obName + '/' + propName).read()
 		except:
 			warnings.warn("Failed to read " + propName + " of " + obName)
 			return "ERROR"
@@ -223,7 +230,7 @@ class GridLabWorld(object):
 	def readClock(self):
 		'Read the clock'
 		try:
-			return urllib2.urlopen(self.baseUrl + 'raw/clock').read()
+			return urllib.request.urlopen(self.baseUrl + 'raw/clock').read()
 		except:
 			warnings.warn("Failed to read the clock.")
 			return "ERROR"
@@ -231,7 +238,7 @@ class GridLabWorld(object):
 	def shutdown(self):
 		'Stop simulation.'
 		try:
-			return urllib2.urlopen(self.baseUrl + 'control/shutdown').read()
+			return urllib.request.urlopen(self.baseUrl + 'control/shutdown').read()
 		except BadStatusLine: #HACK: this is what GridLAB-D returns when shutdown succeeds. Sigh.
 			return None
 		except:
@@ -240,14 +247,14 @@ class GridLabWorld(object):
 
 	def resume(self):
 		try:
-			return urllib2.urlopen(self.baseUrl + 'control/resume').read()
+			return urllib.request.urlopen(self.baseUrl + 'control/resume').read()
 		except:
 			warnings.warn("Resume failed!")
 
 	def write(self, obName, propName, value):
 		'Write a value back to the simulation'
 		try:
-			urllib2.urlopen(self.baseUrl + 'raw/' + obName + '/' + propName + '=' + value).read()
+			urllib.request.urlopen(self.baseUrl + 'raw/' + obName + '/' + propName + '=' + value).read()
 			return "WRITE_SUCCESS"
 		except:
 			warnings.warn("Failed to write " + value + " to " + propName + " of " + obName)

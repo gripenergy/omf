@@ -1,6 +1,10 @@
 ''' Calculate the costs and benefits of energy storage from a distribution utility perspective. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import zip
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback, csv, math, copy
 import multiprocessing
 import numpy as np
@@ -27,8 +31,8 @@ def work(modelDir, inputDict):
 	(cellCapacity, dischargeRate, chargeRate, cellCost) = \
 		[float(inputDict[x]) for x in ('cellCapacity', 'dischargeRate', 'chargeRate', 'cellCost')]
 	battEff	= float(inputDict.get("batteryEfficiency", 92)) / 100.0 * float(inputDict.get("inverterEfficiency", 92)) / 100.0 * float(inputDict.get("inverterEfficiency", 92)) / 100.0
-	discountRate = float(inputDict.get('discountRate', 2.5)) / 100.0
-	dodFactor = float(inputDict.get('dodFactor', 85)) / 100.0
+	discountRate = old_div(float(inputDict.get('discountRate', 2.5)), 100.0)
+	dodFactor = old_div(float(inputDict.get('dodFactor', 85)), 100.0)
 	projYears = int(inputDict.get('projYears',10))
 	transformerThreshold = float(inputDict.get('transformerThreshold',6.5)) * 1000
 	negTransformerThreshold = transformerThreshold * -1
@@ -37,7 +41,7 @@ def work(modelDir, inputDict):
 	deferralType = inputDict.get('deferralType')
 	retailCost = float(inputDict.get('retailCost', 0.06))
 	yearsToReplace = int(inputDict.get('yearsToReplace', 2))
-	carryingCost = float(inputDict.get('carryingCost', 10))/100
+	carryingCost = old_div(float(inputDict.get('carryingCost', 10)),100)
 	# Put demand data in to a file for safe keeping.
 	with open(pJoin(modelDir,"demand.csv"),"w") as demandFile:
 		demandFile.write(inputDict['demandCurve'])
@@ -85,7 +89,7 @@ def work(modelDir, inputDict):
 			errorMessage = "Demand Curve does not exceed Threshold Capacity. Lower Threshold Capacity and run again."
 			raise Exception(errorMessage)
 		#Calculate the number of units needed to cover the max demand/energy
-		numOfUnits = math.ceil(excessDemandMax/(cellCapacity))
+		numOfUnits = math.ceil(old_div(excessDemandMax,(cellCapacity)))
 		newBattCapacity = numOfUnits *cellCapacity * dodFactor
 		newBattDischarge = numOfUnits * dischargeRate
 		newBattCharge = numOfUnits * chargeRate
@@ -109,7 +113,7 @@ def work(modelDir, inputDict):
 						battSoC += charge
 						counter += 1
 					elif row['power'] > transformerThreshold and battSoC < (row['power'] - transformerThreshold):
-						numOfUnits += math.ceil((row['power']-transformerThreshold-battSoC)/cellCapacity)
+						numOfUnits += math.ceil(old_div((row['power']-transformerThreshold-battSoC),cellCapacity))
 						counter = 0
 						break
 					else:
@@ -128,7 +132,7 @@ def work(modelDir, inputDict):
 				row['netpower'] = row['power'] - discharge
 				battSoC -= discharge
 			elif row['power'] <= transformerThreshold and battSoC < afterBattCapacity:
-				row['netpower'] = row['power'] + charge/battEff
+				row['netpower'] = row['power'] + old_div(charge,battEff)
 				battSoC += charge
 			else:
 				row['netpower'] = row['power']
@@ -162,7 +166,7 @@ def work(modelDir, inputDict):
 		except:
 			errorMessage = "Demand Curve does not exceed Threshold Capacity. Lower Threshold Capacity and run again."
 			raise Exception(errorMessage)
-		numOfUnits = math.ceil(excessDemandMax/(cellCapacity))
+		numOfUnits = math.ceil(old_div(excessDemandMax,(cellCapacity)))
 		finalDC = copy.deepcopy(dc)
 		newBattCapacity = numOfUnits *cellCapacity * dodFactor
 		newBattDischarge = numOfUnits * dischargeRate
@@ -190,7 +194,7 @@ def work(modelDir, inputDict):
 						battSoC += abs(charge)
 						counter += 1
 					elif abs(row['power']) > transformerThreshold and battSoC < (abs(row['power']) - transformerThreshold):
-						numOfUnits = numOfUnits + math.ceil((abs(row['power'])-transformerThreshold-battSoC)/cellCapacity)
+						numOfUnits = numOfUnits + math.ceil(old_div((abs(row['power'])-transformerThreshold-battSoC),cellCapacity))
 						counter = 0
 						break
 					else:
@@ -212,10 +216,10 @@ def work(modelDir, inputDict):
 				row['netpower'] = row['power'] + discharge
 				battSoC -= abs(discharge)
 			elif (row['sign'] == 'positive' and row['excessDemand'] < 0) and battSoC < afterBattCapacity:
-				row['netpower'] = row['power'] + charge/battEff
+				row['netpower'] = row['power'] + old_div(charge,battEff)
 				battSoC += abs(charge)
 			elif (row['sign'] == 'negative' and row['power'] + transformerThreshold > 0 ) and battSoC < afterBattCapacity:
-				row['netpower'] = row['power'] - charge/battEff
+				row['netpower'] = row['power'] - old_div(charge,battEff)
 				battSoC += abs(charge)
 			else:
 				row['netpower'] = row['power']
@@ -236,13 +240,13 @@ def work(modelDir, inputDict):
 	outData['transformerThreshold'] = transformerThreshold * 1000.0
 	outData['batterySoc'] = [t['battSoC']/newBattCapacity*100.0*dodFactor + (100-100*dodFactor) for t in finalDC]
 	SoC = outData['batterySoc']
-	cycleEquivalents = sum([SoC[i]-SoC[i+1] for i,x in enumerate(SoC[0:-1]) if SoC[i+1] < SoC[i]]) / 100.0
+	cycleEquivalents = old_div(sum([SoC[i]-SoC[i+1] for i,x in enumerate(SoC[0:-1]) if SoC[i+1] < SoC[i]]), 100.0)
 	outData['cycleEquivalents'] = cycleEquivalents
-	outData['batteryLife'] = batteryCycleLife/cycleEquivalents
+	outData['batteryLife'] = old_div(batteryCycleLife,cycleEquivalents)
 	battCostPerCycle =  afterBattCapacity * cellCost / batteryCycleLife
 	lcoeTotCost = (cycleEquivalents *  afterBattCapacity * retailCost) + (battCostPerCycle * cycleEquivalents)
 	loceTotEnergy = cycleEquivalents * afterBattCapacity
-	LCOE = lcoeTotCost / loceTotEnergy
+	LCOE = old_div(lcoeTotCost, loceTotEnergy)
 	outData['LCOE'] = LCOE
 	# Stdout/stderr.
 	outData["stdout"] = "Success"

@@ -1,6 +1,8 @@
 ''' Get power and energy limits from PNNL VirtualBatteries (VBAT) load model.'''
 from __future__ import absolute_import
 
+from builtins import map
+from builtins import str
 import json, os, shutil, subprocess, platform
 from os.path import join as pJoin
 from jinja2 import Template
@@ -55,13 +57,13 @@ def work(modelDir, inputDict):
 		(myOut, err) = proc.communicate()
 	P_lower = myOut.partition("P_lower =\n\n")[2]
 	P_lower = P_lower.partition("\n\nn")[0]
-	P_lower = map(float,P_lower.split('\n'))
+	P_lower = list(map(float,P_lower.split('\n')))
 	P_upper = myOut.partition("P_upper =\n\n")[2]
 	P_upper = P_upper.partition("\n\nn")[0]
-	P_upper = map(float,P_upper.split('\n'))
+	P_upper = list(map(float,P_upper.split('\n')))
 	E_UL = myOut.partition("E_UL =\n\n")[2]
 	E_UL = E_UL.partition("\n\n")[0]
-	E_UL = map(float,E_UL.split('\n'))
+	E_UL = list(map(float,E_UL.split('\n')))
 
 	rms = 0
 	for each in P_lower:

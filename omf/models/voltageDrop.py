@@ -1,6 +1,10 @@
 ''' Graph the voltage drop on a feeder. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import next
+from builtins import str
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
 from os.path import join as pJoin
@@ -44,14 +48,14 @@ def voltPlot(omd, workDir=None, neatoLayout=False):
 	Returns a matplotlib object. '''
 	tree = omd.get('tree',{})
 	# # Get rid of schedules and climate:
-	for key in tree.keys():
+	for key in list(tree.keys()):
 		if tree[key].get("argument","") == "\"schedules.glm\"" or tree[key].get("tmyfile","") != "":
 			del tree[key]
 	# Make sure we have a voltDump:
 	def safeInt(x):
 		try: return int(x)
 		except: return 0
-	biggestKey = max([safeInt(x) for x in tree.keys()])
+	biggestKey = max([safeInt(x) for x in list(tree.keys())])
 	tree[str(biggestKey*10)] = {"object":"voltdump","filename":"voltDump.csv"}
 	# Run Gridlab.
 	if not workDir:
@@ -76,7 +80,7 @@ def voltPlot(omd, workDir=None, neatoLayout=False):
 		return math.ceil(math.log10(x+1))
 	def avg(l):
 		''' Average of a list of ints or floats. '''
-		return sum(l)/len(l)
+		return old_div(sum(l),len(l))
 	# Detect the feeder nominal voltage:
 	for key in tree:
 		ob = tree[key]
@@ -92,7 +96,7 @@ def voltPlot(omd, workDir=None, neatoLayout=False):
 			if phaseVolt != 0.0:
 				if digits(phaseVolt)>3:
 					# Normalize to 120 V standard
-					phaseVolt = phaseVolt*(120/feedVoltage)
+					phaseVolt = phaseVolt*(old_div(120,feedVoltage))
 				allVolts.append(phaseVolt)
 		nodeVolts[row.get('node_name','')] = avg(allVolts)
 	# Color nodes by VOLTAGE.

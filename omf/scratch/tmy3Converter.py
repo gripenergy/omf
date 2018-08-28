@@ -5,6 +5,8 @@ Requires NREL's TMY3 to TMY2 exe and windows.
 '''
 from __future__ import print_function
 
+from builtins import str
+from builtins import next
 import os, csv, re, shutil
 
 pathToExe ='"C:\\Program Files (x86)\\TMY3toTMY2_CMD\\TMY3toTMY2_CMD.exe"'

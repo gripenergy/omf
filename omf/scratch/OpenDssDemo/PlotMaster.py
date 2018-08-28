@@ -1,6 +1,10 @@
 ''' Run OpenDSS and plot the results for arbitrary circuits. '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from argparse import ArgumentParser
 
 import time
@@ -138,7 +142,7 @@ def THD(bus_coords):
 	bus_coords.columns = ['Bus', 'X', 'Y', 'radius']
 	voltHarmonics.columns.str.strip()
 	for index, row in voltHarmonics.iterrows():
-		voltHarmonics['THD'] = row[' Magnitude1']/(math.sqrt(row[' Magnitude2']**2 + row[' Magnitude3']**2))
+		voltHarmonics['THD'] = old_div(row[' Magnitude1'],(math.sqrt(row[' Magnitude2']**2 + row[' Magnitude3']**2)))
 	distortionDF = pd.merge(bus_coords, voltHarmonics, on='Bus') # Merge on the bus axis so that all data is in one frame.
 	plt.scatter(distortionDF['radius'], distortionDF['THD'])
 	plt.xlabel('Radius [m]')

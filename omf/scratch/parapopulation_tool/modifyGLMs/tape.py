@@ -58,8 +58,8 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 	regulator_parents = []
 	regulator_names = []
 
-	for x in recorder_dict.keys():
-		if 'object' in recorder_dict[x].keys():
+	for x in list(recorder_dict.keys()):
+		if 'object' in list(recorder_dict[x].keys()):
 			if recorder_dict[x]['object'] == 'transformer' and recorder_dict[x]['name'] == 'substation_transformer':
 				swing_node = recorder_dict[x]['to']
 
@@ -70,7 +70,7 @@ def add_recorders(recorder_dict, config_file, file_path, feeder_name, last_key=0
 				climate_name = recorder_dict[x]['name']
 
 			if recorder_dict[x]['object'] == 'ZIPload':
-				if 'groupid' in recorder_dict[x].keys():
+				if 'groupid' in list(recorder_dict[x].keys()):
 					if recorder_dict[x]['groupid'] == 'Responsive_load':
 						have_resp_zips = 1
 

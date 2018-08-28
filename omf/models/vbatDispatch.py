@@ -1,6 +1,12 @@
 ''' Evaluate demand response energy and economic savings available using PNNL VirtualBatteries (VBAT) model. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, shutil, subprocess, platform, collections, csv, pulp
 from os.path import join as pJoin
 from jinja2 import Template
@@ -124,13 +130,13 @@ def work(modelDir, inputDict):
 	try:
 		P_lower = myOut.partition("P_lower =\n\n")[2]
 		P_lower = P_lower.partition("\n\nn")[0]
-		P_lower = map(float,P_lower.split('\n'))
+		P_lower = list(map(float,P_lower.split('\n')))
 		P_upper = myOut.partition("P_upper =\n\n")[2]
 		P_upper = P_upper.partition("\n\nn")[0]
-		P_upper = map(float,P_upper.split('\n'))
+		P_upper = list(map(float,P_upper.split('\n')))
 		E_UL = myOut.partition("E_UL =\n\n")[2]
 		E_UL = E_UL.partition("\n\n")[0]
-		E_UL = map(float,E_UL.split('\n'))
+		E_UL = list(map(float,E_UL.split('\n')))
 	except:
 		raise Exception('Parsing error, check power data')
 	outData["minPowerSeries"] = [-1*x for x in P_lower]
@@ -138,12 +144,12 @@ def work(modelDir, inputDict):
 	outData["minEnergySeries"] = [-1*x for x in E_UL]
 	outData["maxEnergySeries"] = E_UL
 	### Di's Modified dispatch code begings
-	month_index=range(1,13)
+	month_index=list(range(1,13))
 	beta=float(inputDict["demandChargeCost"])
 	C=float(inputDict["capacitance"])
 	R=float(inputDict["resistance"])
 	deltaT=1
-	alpha=1- deltaT/(C*R) # hourly self discharge rate
+	alpha=1- old_div(deltaT,(C*R)) # hourly self discharge rate
 	e0=0 # VB initial energy state
 	model = pulp.LpProblem("Demand charge minimization problem", pulp.LpMinimize) 	# start demand charge reduction LP problem
 	VBpower = pulp.LpVariable.dicts("ChargingPower",((i+1) for i in range(8760)))	# decision variable of VB charging power; dim: 8760 by 1
@@ -237,7 +243,7 @@ def work(modelDir, inputDict):
 		SPP = (float(inputDict["unitDeviceCost"])+float(inputDict["unitUpkeepCost"]))*float(inputDict["number_devices"])/cashFlow
 	for x in range(int(inputDict["projectionLength"])):
 		if x >0:
-			cashFlowList[x] = (cashFlowList[x-1])/(1+float(inputDict["discountRate"])/100)
+			cashFlowList[x] = old_div((cashFlowList[x-1]),(1+old_div(float(inputDict["discountRate"]),100)))
 	for x in cashFlowList:
 		NPV +=x
 	NPV -= float(inputDict["unitDeviceCost"])*float(inputDict["number_devices"])

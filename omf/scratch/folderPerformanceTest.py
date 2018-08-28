@@ -5,6 +5,8 @@
 '''
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
 import os, json, timeit, shutil
 
 
@@ -37,7 +39,7 @@ testMd = {
 # File Setup
 if 'testDir' not in os.listdir('.'):
 	os.mkdir('testDir')
-	for i in xrange(TARGET):
+	for i in range(TARGET):
 		os.mkdir('testDir/' + str(i))
 		with open('testDir/' + str(i) + '/metadata.json','w') as mdFile:
 			json.dump(testMd,mdFile)
@@ -51,7 +53,7 @@ print('ListingDir Time:', min(timeit.Timer('os.listdir("testDir")', setup='impor
 # Test reading one "page" of results: TAKES ONLY 0.4 SECONDS.
 def readOnePage():
 	allData = []
-	for i in xrange(30):
+	for i in range(30):
 		with open('testDir/' + str(i) + '/metadata.json','r') as inFile:
 			allData.append(json.load(inFile))
 print('Getting JSON in for one page:', min(timeit.Timer('readOnePage()', setup='from __main__ import os, json, readOnePage').repeat(7, 100)))

@@ -1,6 +1,7 @@
 ''' A model skeleton for future models: Calculates the sum of two integers. '''
 from __future__ import absolute_import
 
+from builtins import str
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
 from jinja2 import Template

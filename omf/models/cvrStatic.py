@@ -1,6 +1,10 @@
 ''' Calculate CVR impacts using a targetted set of static loadflows. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback
 import math, re
 import multiprocessing
@@ -50,9 +54,9 @@ def work(modelDir, inputDict):
 	# Graph the SCADA data.
 	fig = plt.figure(figsize=(10,6))
 	indices = [r['monthName'] for r in monthData]
-	d1 = [r['histPeak']/(10**3) for r in monthData]
-	d2 = [r['histAverage']/(10**3) for r in monthData]
-	ticks = range(len(d1))
+	d1 = [old_div(r['histPeak'],(10**3)) for r in monthData]
+	d2 = [old_div(r['histAverage'],(10**3)) for r in monthData]
+	ticks = list(range(len(d1)))
 	bar_peak = plt.bar(ticks,d1,color='gray')
 	bar_avg = plt.bar(ticks,d2,color='dimgray')
 	plt.legend([bar_peak[0],bar_avg[0]],['histPeak','histAverage'],bbox_to_anchor=(0., 1.015, 1., .102), loc=3,
@@ -75,9 +79,9 @@ def work(modelDir, inputDict):
 	allLoadLevels = [x.get('histPeak',0) for x in monthData] + [y.get('histAverage',0) for y in monthData]
 	maxLev = _roundOne(max(allLoadLevels),'up')
 	minLev = _roundOne(min(allLoadLevels),'down')
-	tenLoadLevels = range(int(minLev),int(maxLev),int((maxLev-minLev)/10))
+	tenLoadLevels = list(range(int(minLev),int(maxLev),int(old_div((maxLev-minLev),10))))
 	# Gather variables from the feeder.
-	for key in tree.keys():
+	for key in list(tree.keys()):
 		# Set clock to single timestep.
 		if tree[key].get('clock','') == 'clock':
 			tree[key] = {"timezone":"PST+8PDT",
@@ -154,7 +158,7 @@ def work(modelDir, inputDict):
 		'limit': '0',
 		'parent': tree[regIndex]['to'],
 		'property': 'voltage_A,voltage_B,voltage_C'} ]
-	biggest = 1 + max([int(k) for k in tree.keys()])
+	biggest = 1 + max([int(k) for k in list(tree.keys())])
 	for index, rec in enumerate(recorders):
 		tree[biggest + index] = rec
 	# Change constant PF loads to ZIP loads. (See evernote for rationale about 50/50 power/impedance mix.)
@@ -190,7 +194,7 @@ def work(modelDir, inputDict):
 	def loweringPotential(baseLine):
 		''' Given a baseline end of line voltage, how many more percent can we shave off the substation voltage? '''
 		''' testsWePass = [122.0,118.0,200.0,110.0] '''
-		lower = int(math.floor((baseLine/114.0-1)*100)) - 1
+		lower = int(math.floor((old_div(baseLine,114.0)-1)*100)) - 1
 		# If lower is negative, we can't return it because we'd be undervolting beyond what baseline already was!
 		if lower < 0:
 			return baselineTap
@@ -211,7 +215,7 @@ def work(modelDir, inputDict):
 			for key in tree:
 				if tree[key].get('object','') == 'triplex_load':
 					currentPow = float(tree[key]['base_power_12'])
-					ratio = desiredLoad/totalLoad
+					ratio = old_div(desiredLoad,totalLoad)
 					tree[key]['base_power_12'] = str(currentPow*ratio)
 			# If we're doing CVR then lower the voltage.
 			if doingCvr:
@@ -243,14 +247,14 @@ def work(modelDir, inputDict):
 				'doingCvr':doingCvr,
 				'loadLevel':desiredLoad,
 				'realPower':p,
-				'powerFactor':p/s,
+				'powerFactor':old_div(p,s),
 				'losses':lossTotal,
 				'subVoltage': (
 					output['ZsubstationBottom.csv']['voltage_A'][0] +
 					output['ZsubstationBottom.csv']['voltage_B'][0] +
 					output['ZsubstationBottom.csv']['voltage_C'][0] )/3/60,
-				'lowVoltage':output['ZvoltageJiggle.csv']['min(voltage_12.mag)'][0]/2,
-				'highVoltage':output['ZvoltageJiggle.csv']['max(voltage_12.mag)'][0]/2 })
+				'lowVoltage':old_div(output['ZvoltageJiggle.csv']['min(voltage_12.mag)'][0],2),
+				'highVoltage':old_div(output['ZvoltageJiggle.csv']['max(voltage_12.mag)'][0],2) })
 	# For a given load level, find two points to interpolate on.
 	def getInterpPoints(t):
 		''' Find the two points we can interpolate from. '''
@@ -306,13 +310,13 @@ def work(modelDir, inputDict):
 		plt.tight_layout()
 		plt.table(cellText=[row for row in inData[1:]],
 			loc = 'center',
-			rowLabels = range(len(inData)-1),
+			rowLabels = list(range(len(inData)-1)),
 			colLabels = inData[0])
 	def dictalToMatrix(dictList):
 		''' Take our dictal format to a matrix. '''
-		matrix = [dictList[0].keys()]
+		matrix = [list(dictList[0].keys())]
 		for row in dictList:
-			matrix.append(row.values())
+			matrix.append(list(row.values()))
 		return matrix
 	# Powerflow results.
 	plotTable(dictalToMatrix(powerflows))
@@ -338,7 +342,7 @@ def work(modelDir, inputDict):
 	d1 = [r['energyReductionDollars'] for r in monthData]
 	d2 = [r['lossReductionDollars'] for r in monthData]
 	d3 = [r['peakReductionDollars'] for r in monthData]
-	ticks = range(len(d1))
+	ticks = list(range(len(d1)))
 	bar_erd = plt.bar(ticks,d1,color='red')
 	bar_lrd = plt.bar(ticks,d2,color='green')
 	bar_prd = plt.bar(ticks,d3,color='blue',yerr=d2)
@@ -356,7 +360,7 @@ def work(modelDir, inputDict):
 	fig = plt.figure(figsize=(10,5))
 	annualSavings = sum(d1) + sum(d2) + sum(d3)
 	annualSave = lambda x:(annualSavings - rates['omCost']) * x - rates['capitalCost']
-	simplePayback = rates['capitalCost']/(annualSavings - rates['omCost'])
+	simplePayback = old_div(rates['capitalCost'],(annualSavings - rates['omCost']))
 	plt.xlabel('Year After Installation')
 	plt.xlim(0,30)
 	plt.ylabel('Cumulative Savings ($)')
@@ -371,7 +375,7 @@ def work(modelDir, inputDict):
 def _roundOne(x,direc):
 	''' Round x in direc (up/down) to 1 sig fig. '''
 	thou = 10.0**math.floor(math.log10(x))
-	decForm = x/thou
+	decForm = old_div(x,thou)
 	if direc=='up':
 		return math.ceil(decForm)*thou
 	elif direc=='down':

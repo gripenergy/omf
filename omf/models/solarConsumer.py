@@ -1,6 +1,10 @@
 ''' Calculate solar costs and benefits for consumers. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, webbrowser, shutil, subprocess
 from matplotlib import pyplot as plt
 from datetime import datetime as dt
@@ -77,18 +81,18 @@ def work(modelDir, inputDict):
 
 def tjCode(inputs, outData):
 	# Make inputs the right types.
-	for k in inputs.keys():
+	for k in list(inputs.keys()):
 		if k not in ['quickRunEmail','modelType','meteringType','modelName', 'monthlyDemand','user','created','runTime','climateName']:
 			inputs[k] = float(inputs[k])
 	inputs['years'] = int(inputs['years'])
 	inputs['monthlyDemand'] = [float(x) for x in inputs['monthlyDemand'].split(',')]
 	# Associate solar output with time
-	monthlySolarOutput = zip(outData["powerOutputAc"],outData["pythonTimeStamps"])
+	monthlySolarOutput = list(zip(outData["powerOutputAc"],outData["pythonTimeStamps"]))
 	outData["monthlySolarGen"] = []
 	for y in range(1,13):
 		monthSum = sum([x[0] for x in monthlySolarOutput if x[1].month == y])
 		#convert to kWh
-		monthSum = monthSum / 1000
+		monthSum = old_div(monthSum, 1000)
 		outData["monthlySolarGen"].append(monthSum)
 	# Calculate monthly energy use for all cases.
 	totalEnergyUse=[]
@@ -116,9 +120,9 @@ def tjCode(inputs, outData):
 				monthlyBillsComS.append(comRate * totalEnergyUse[x*12+y-1]+inputs["comMonthlyCharge"])
 				monthlyBillsRoof.append(retailRate * totalEnergyUse[x*12+y-1]+inputs["utilitySolarMonthlyCharge"])
 				monthlyBills3rdParty.append(retailRate * totalEnergyUse[x*12+y-1]+PartyRate * totalSolarGen[x*12+y-1]+inputs["utilitySolarMonthlyCharge"])
-			retailRate = retailRate*(1+inputs["rateIncrease"]/100)
-			comRate = comRate*(1+inputs["comRateIncrease"]/100)
-			PartyRate = PartyRate*(1+inputs["ThirdPartyRateIncrease"]/100)
+			retailRate = retailRate*(1+old_div(inputs["rateIncrease"],100))
+			comRate = comRate*(1+old_div(inputs["comRateIncrease"],100))
+			PartyRate = PartyRate*(1+old_div(inputs["ThirdPartyRateIncrease"],100))
 	#Calculate Production Metering Scenario
 	elif inputs["meteringType"]=='production':
 		for x in range(inputs['years']):
@@ -127,9 +131,9 @@ def tjCode(inputs, outData):
 				monthlyBillsComS.append(comRate * inputs['monthlyDemand'][y-1]+inputs["comMonthlyCharge"] - inputs['valueOfSolarRate']*totalSolarGen[x*12+y-1])
 				monthlyBillsRoof.append(retailRate * inputs['monthlyDemand'][y-1]+inputs["utilitySolarMonthlyCharge"] - inputs['valueOfSolarRate']*totalSolarGen[x*12+y-1])
 				monthlyBills3rdParty.append(retailRate * totalEnergyUse[x*12+y-1]+PartyRate * totalSolarGen[x*12+y-1]+inputs["utilitySolarMonthlyCharge"])
-			retailRate = retailRate*(1+inputs["rateIncrease"]/100)
-			comRate = comRate*(1+inputs["comRateIncrease"]/100)
-			PartyRate = PartyRate*(1+inputs["ThirdPartyRateIncrease"]/100)
+			retailRate = retailRate*(1+old_div(inputs["rateIncrease"],100))
+			comRate = comRate*(1+old_div(inputs["comRateIncrease"],100))
+			PartyRate = PartyRate*(1+old_div(inputs["ThirdPartyRateIncrease"],100))
 	#Calculate Excess Metering Scenario
 	elif inputs["meteringType"]=='excessEnergyMetering':
 		for x in range(inputs['years']):
@@ -145,27 +149,27 @@ def tjCode(inputs, outData):
 					monthlyBillsComS.append(comRate * inputs['monthlyDemand'][y-1]+inputs["comMonthlyCharge"] - inputs['valueOfSolarRate']*excessSolar)
 					monthlyBillsRoof.append(retailRate * inputs['monthlyDemand'][y-1]+inputs["utilitySolarMonthlyCharge"] - inputs['valueOfSolarRate']*excessSolar)
 					monthlyBills3rdParty.append(retailRate * totalEnergyUse[x*12+y-1]+PartyRate * totalSolarGen[x*12+y-1]+inputs["utilitySolarMonthlyCharge"])
-			retailRate = retailRate*(1+inputs["rateIncrease"]/100)
-			comRate = comRate*(1+inputs["comRateIncrease"]/100)
-			PartyRate = PartyRate*(1+inputs["ThirdPartyRateIncrease"]/100)
+			retailRate = retailRate*(1+old_div(inputs["rateIncrease"],100))
+			comRate = comRate*(1+old_div(inputs["comRateIncrease"],100))
+			PartyRate = PartyRate*(1+old_div(inputs["ThirdPartyRateIncrease"],100))
 	# Add upfront costs to the first month.
 	monthlyBillsComS[0]+= inputs["comUpfrontCosts"]
 	monthlyBillsRoof[0]+= inputs["roofUpfrontCosts"]
 	# Average monthly bill calculation:
-	outData["avgMonthlyBillBaseCase"] = sum(monthlyBillsBaseCase)/len(monthlyBillsBaseCase)
-	outData["avgMonthlyBillComS"] = sum(monthlyBillsComS)/len(monthlyBillsComS)
-	outData["avgMonthlyBillRoof"] = sum(monthlyBillsRoof)/len(monthlyBillsRoof)
-	outData["avgMonthlyBill3rdParty"] = sum(monthlyBills3rdParty)/len(monthlyBills3rdParty)
+	outData["avgMonthlyBillBaseCase"] = old_div(sum(monthlyBillsBaseCase),len(monthlyBillsBaseCase))
+	outData["avgMonthlyBillComS"] = old_div(sum(monthlyBillsComS),len(monthlyBillsComS))
+	outData["avgMonthlyBillRoof"] = old_div(sum(monthlyBillsRoof),len(monthlyBillsRoof))
+	outData["avgMonthlyBill3rdParty"] = old_div(sum(monthlyBills3rdParty),len(monthlyBills3rdParty))
 	# Total energy cost calculation:
 	outData["totalCostBaseCase"] = sum(monthlyBillsBaseCase)
 	outData["totalCostComS"] = sum(monthlyBillsComS)
 	outData["totalCostRoof"] = sum(monthlyBillsRoof)
 	outData["totalCost3rdParty"] = sum(monthlyBills3rdParty)
 	#Cost per kWh
-	outData["kWhCostBaseCase"]=outData["totalCostBaseCase"]/sum(inputs["monthlyDemand"]*inputs["years"])
-	outData["kWhCostComS"]=outData["totalCostComS"]/sum(inputs["monthlyDemand"]*inputs["years"])
-	outData["kWhCost3rdParty"]=outData["totalCost3rdParty"]/sum(inputs["monthlyDemand"]*inputs["years"])
-	outData["kWhCostRoof"]=outData["totalCostRoof"]/sum(inputs["monthlyDemand"]*inputs["years"])
+	outData["kWhCostBaseCase"]=old_div(outData["totalCostBaseCase"],sum(inputs["monthlyDemand"]*inputs["years"]))
+	outData["kWhCostComS"]=old_div(outData["totalCostComS"],sum(inputs["monthlyDemand"]*inputs["years"]))
+	outData["kWhCost3rdParty"]=old_div(outData["totalCost3rdParty"],sum(inputs["monthlyDemand"]*inputs["years"]))
+	outData["kWhCostRoof"]=old_div(outData["totalCostRoof"],sum(inputs["monthlyDemand"]*inputs["years"]))
 	# Total Savings Money saved compared to base case:
 	outData["totalSavedByComS"] = outData["totalCostBaseCase"] - outData["totalCostComS"]
 	outData["totalSavedBy3rdParty"] = outData["totalCostBaseCase"] - outData["totalCost3rdParty"]
@@ -182,11 +186,11 @@ def tjCode(inputs, outData):
 		for i, val in enumerate(cashflow):
 				net = sum(cashflow[0:i+1])
 				if net >= 0:
-						return i + (abs(float(cashflow[i-1]))/val)
+						return i + (old_div(abs(float(cashflow[i-1])),val))
 		return -1
-	outData["sppComS"] = spp([x-y for x,y in zip(monthlyBillsBaseCase, monthlyBillsComS)])/12
-	outData["spp3rdParty"] = spp([x-y for x,y in zip(monthlyBillsBaseCase, monthlyBills3rdParty)])/12
-	outData["sppRoof"] = spp([x-y for x,y in zip(monthlyBillsBaseCase, monthlyBillsRoof)])/12
+	outData["sppComS"] = old_div(spp([x-y for x,y in zip(monthlyBillsBaseCase, monthlyBillsComS)]),12)
+	outData["spp3rdParty"] = old_div(spp([x-y for x,y in zip(monthlyBillsBaseCase, monthlyBills3rdParty)]),12)
+	outData["sppRoof"] = old_div(spp([x-y for x,y in zip(monthlyBillsBaseCase, monthlyBillsRoof)]),12)
 	# Green electron calculations:
 	sumDemand = sum(inputs["monthlyDemand"])*inputs['years']
 	sumSolarGen = sum(totalSolarGen)
@@ -194,7 +198,7 @@ def tjCode(inputs, outData):
 	if sumSolarGen>= sumDemand:
 		outData["greenElectrons"]=100
 	else:
-		outData["greenElectrons"]=(sumSolarDemandDif/sumDemand)*inputs["greenFuelMix"]+(sumSolarGen/sumDemand)*100
+		outData["greenElectrons"]=(old_div(sumSolarDemandDif,sumDemand))*inputs["greenFuelMix"]+(old_div(sumSolarGen,sumDemand))*100
 	# Lifetime costs to the consumer graph:
 	plt.figure()
 	plt.title('Lifetime Energy Costs')

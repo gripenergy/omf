@@ -1,6 +1,10 @@
 # coding: utf-8
 
 #Basic module calls and function set-up to pop-out fig to zoom and etc.
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
@@ -93,8 +97,8 @@ plt.xlabel('Time')
 plt.ylabel('Voltage (V)')
 
 plt.subplot(4,1,4)
-[plt.plot_date(date,val[7]/1000,fmt='-',label='Real Energy')]
-[plt.plot_date(date,val[8]/1000,fmt='-',label='Reactive Energy')]
+[plt.plot_date(date,old_div(val[7],1000),fmt='-',label='Real Energy')]
+[plt.plot_date(date,old_div(val[8],1000),fmt='-',label='Reactive Energy')]
 plt.legend(loc='best', numpoints=1)
 plt.title('Energy Consumed by Loads')
 plt.xlabel('Time')
@@ -116,7 +120,7 @@ date1,bal[1],bal[2],bal[3],bal[4]= np.loadtxt(
 )
  
 plt.subplot(2,1,1)
-[plt.plot_date(date1,bal[1]/1000,fmt='-',color='brown',label='Power Flow into Feeder')]
+[plt.plot_date(date1,old_div(bal[1],1000),fmt='-',color='brown',label='Power Flow into Feeder')]
 plt.legend(loc='best', numpoints=1)
 plt.title('Power Flow into Feeder')
 plt.xlabel('Time')
@@ -144,21 +148,21 @@ date2,hal[1],hal[2],hal[3]= np.loadtxt(
     converters={0:lambda d2: mdates.strpdate2num('%Y-%m-%d %H:%M:%S')(d2[:-4])}
 )
 plt.subplot(3,1,1)
-[plt.plot_date(date2,hal[1]/1000,fmt='-',color='red',label='Energy at Substation')]
+[plt.plot_date(date2,old_div(hal[1],1000),fmt='-',color='red',label='Energy at Substation')]
 plt.legend(loc='best', numpoints=1)
 plt.title('Energy at Substation')
 plt.xlabel('Time')
 plt.ylabel('Energy (kWh)')
 
 plt.subplot(3,1,2)
-[plt.plot_date(date2,hal[2]/1000,fmt='-',color='green',label='Energy consumed by loads')]
+[plt.plot_date(date2,old_div(hal[2],1000),fmt='-',color='green',label='Energy consumed by loads')]
 plt.legend(loc='best', numpoints=1)
 plt.title('Energy Consumed by Loads')
 plt.xlabel('Time')
 plt.ylabel('Energy (kWh)')
 
 plt.subplot(3,1,3)
-[plt.plot_date(date2,hal[3]/1000,fmt='-',color='blue',label='Energy consumed by Losses')]
+[plt.plot_date(date2,old_div(hal[3],1000),fmt='-',color='blue',label='Energy consumed by Losses')]
 plt.legend(loc='best', numpoints=1)
 plt.title('Energy Consumed by Losses')
 plt.xlabel('Time')

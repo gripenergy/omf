@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import next
+from builtins import str
+from past.utils import old_div
 import omf
 import sys
 from matplotlib import pyplot as plt
@@ -18,7 +22,7 @@ feed = omf.feeder.parse(FNAME)
 
 # All object types.
 x = set()
-for obj in feed.values():
+for obj in list(feed.values()):
 	if 'object' in obj:
 		x.add(obj['object'])
 #print x
@@ -32,14 +36,14 @@ def voltPlot(glmPath, workDir=None, neatoLayout=False):
 	Returns a matplotlib object. '''
 	tree = omf.feeder.parse(glmPath)
 	# # Get rid of schedules and climate:
-	for key in tree.keys():
+	for key in list(tree.keys()):
 		if tree[key].get("argument","") == "\"schedules.glm\"" or tree[key].get("tmyfile","") != "":
 			del tree[key]
 	# Make sure we have a voltDump:
 	def safeInt(x):
 		try: return int(x)
 		except: return 0
-	biggestKey = max([safeInt(x) for x in tree.keys()])
+	biggestKey = max([safeInt(x) for x in list(tree.keys())])
 	tree[str(biggestKey*10)] = {"object":"voltdump","filename":"voltDump.csv"}
 	tree[str(biggestKey*10 + 1)] = {"object":"currdump","filename":"currDump.csv"}
 	# Run Gridlab.
@@ -73,7 +77,7 @@ def voltPlot(glmPath, workDir=None, neatoLayout=False):
 		return math.ceil(math.log10(x+1))
 	def avg(l):
 		''' Average of a list of ints or floats. '''
-		return sum(l)/len(l)
+		return old_div(sum(l),len(l))
 	# Detect the feeder nominal voltage:
 	for key in tree:
 		ob = tree[key]
@@ -88,7 +92,7 @@ def voltPlot(glmPath, workDir=None, neatoLayout=False):
 			if phaseVolt != 0.0:
 				if digits(phaseVolt)>3:
 					# Normalize to 120 V standard
-					phaseVolt = phaseVolt*(120/feedVoltage)
+					phaseVolt = phaseVolt*(old_div(120,feedVoltage))
 				allVolts.append(phaseVolt)
 		nodeVolts[row.get('node_name','')] = avg(allVolts)
 	# Add up currents.
@@ -101,7 +105,7 @@ def voltPlot(glmPath, workDir=None, neatoLayout=False):
 	# create edgeCurrent copy with to and from tuple as keys for labeling
 	edgeTupleCurrents = {}
 	for edge in edgeCurrents:
-		for obj in tree.values():
+		for obj in list(tree.values()):
 			if obj.get('name') == edge:
 				coord = (obj.get('from'), obj.get('to'))
 				currVal = edgeCurrents.get(edge)

@@ -1,9 +1,12 @@
 from __future__ import absolute_import
+from __future__ import division
 #Hourly Day Of Week Forecasting
 # This code using an hourly day of week forecasting technique that linearizes the relationship between temperature and demand for the 4 previous
 # days same days of the week at the same hour. Take the 4 mondays at 14:00 to predict the next based on the forecasted temperature.
 
 #model specific imports
+from builtins import range
+from past.utils import old_div
 import csv,math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -58,7 +61,7 @@ def work(modelDir, inputDict):
 	MAE = 0		#Mean Average Error calculation
 	for i in range(len(forecasted)):
 		MAE = MAE + abs(forecasted[i]-actual[i])
-	MAE = math.trunc(MAE/len(forecasted)) 
+	MAE = math.trunc(old_div(MAE,len(forecasted))) 
 	outData["actual"] = actual
 	outData["forecasted"] = forecasted
 	outData["MAE"] = MAE

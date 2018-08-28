@@ -1,6 +1,11 @@
 ''' Powerflow results for one Gridlab instance. '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import map
+from builtins import zip
+from builtins import str
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, math
 import multiprocessing
 from os.path import join as pJoin
@@ -219,12 +224,12 @@ def runForeground(modelDir, inputDict):
 			# Voltage Band
 			if 'VoltageJiggle.csv' in rawOut:
 				cleanOut['allMeterVoltages'] = {}
-				cleanOut['allMeterVoltages']['Min'] = hdmAgg([(i / 2) for i in rawOut['VoltageJiggle.csv']['min(voltage_12.mag)']], min, level)
-				cleanOut['allMeterVoltages']['Mean'] = hdmAgg([(i / 2) for i in rawOut['VoltageJiggle.csv']['mean(voltage_12.mag)']], avg, level)
-				cleanOut['allMeterVoltages']['StdDev'] = hdmAgg([(i / 2) for i in rawOut['VoltageJiggle.csv']['std(voltage_12.mag)']], avg, level)
-				cleanOut['allMeterVoltages']['Max'] = hdmAgg([(i / 2) for i in rawOut['VoltageJiggle.csv']['max(voltage_12.mag)']], max, level)
-			cleanOut['allMeterVoltages']['stdDevPos'] = [(x+y/2) for x,y in zip(cleanOut['allMeterVoltages']['Mean'], cleanOut['allMeterVoltages']['StdDev'])]
-			cleanOut['allMeterVoltages']['stdDevNeg'] = [(x-y/2) for x,y in zip(cleanOut['allMeterVoltages']['Mean'], cleanOut['allMeterVoltages']['StdDev'])]
+				cleanOut['allMeterVoltages']['Min'] = hdmAgg([(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['min(voltage_12.mag)']], min, level)
+				cleanOut['allMeterVoltages']['Mean'] = hdmAgg([(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['mean(voltage_12.mag)']], avg, level)
+				cleanOut['allMeterVoltages']['StdDev'] = hdmAgg([(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['std(voltage_12.mag)']], avg, level)
+				cleanOut['allMeterVoltages']['Max'] = hdmAgg([(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['max(voltage_12.mag)']], max, level)
+			cleanOut['allMeterVoltages']['stdDevPos'] = [(x+old_div(y,2)) for x,y in zip(cleanOut['allMeterVoltages']['Mean'], cleanOut['allMeterVoltages']['StdDev'])]
+			cleanOut['allMeterVoltages']['stdDevNeg'] = [(x-old_div(y,2)) for x,y in zip(cleanOut['allMeterVoltages']['Mean'], cleanOut['allMeterVoltages']['StdDev'])]
 			# Total # of meters
 			count = 0
 			with open(pJoin(modelDir, feederName, "feeder.omd")) as f:
@@ -346,7 +351,7 @@ def runForeground(modelDir, inputDict):
 		output["timeStamps"] = feederOutput.get("timeStamps", [])
 		output["climate"] = feederOutput.get("climate", [])
 		# Add feederNames to output so allInputData feederName changes don't cause output rendering to disappear.
-		for key, feederName in inputDict.iteritems():
+		for key, feederName in inputDict.items():
 			if 'feederName' in key:
 				output[key] = feederName
 		with open(pJoin(modelDir,"allOutputData.json"),"w") as outFile:
@@ -391,7 +396,7 @@ def runForeground(modelDir, inputDict):
 
 def avg(inList):
 	''' Average a list. Really wish this was built-in. '''
-	return sum(inList)/len(inList)
+	return old_div(sum(inList),len(inList))
 
 def hdmAgg(series, func, level):
 	''' Simple hour/day/month aggregation for Gridlab. '''
@@ -405,12 +410,12 @@ def aggSeries(timeStamps, timeSeries, func, level):
 	# Different substring depending on what level we aggregate to:
 	if level=='months': endPos = 7
 	elif level=='days': endPos = 10
-	combo = zip(timeStamps, timeSeries)
+	combo = list(zip(timeStamps, timeSeries))
 	# Group by level:
 	groupedCombo = _groupBy(combo, lambda x1,x2: x1[0][0:endPos]==x2[0][0:endPos])
 	# Get rid of the timestamps:
 	groupedRaw = [[pair[1] for pair in group] for group in groupedCombo]
-	return map(func, groupedRaw)
+	return list(map(func, groupedRaw))
 
 def _pyth(x,y):
 	''' Compute the third side of a triangle--BUT KEEP SIGNS THE SAME FOR DG. '''
@@ -420,12 +425,12 @@ def _pyth(x,y):
 
 def vecPyth(vx,vy):
 	''' Pythagorean theorem for pairwise elements from two vectors. '''
-	rows = zip(vx,vy)
-	return map(lambda x:_pyth(*x), rows)
+	rows = list(zip(vx,vy))
+	return [_pyth(*x) for x in rows]
 
 def vecSum(*args):
 	''' Add n vectors. '''
-	return map(sum,zip(*args))
+	return list(map(sum,list(zip(*args))))
 
 def _prod(inList):
 	''' Product of all values in a list. '''
@@ -433,17 +438,17 @@ def _prod(inList):
 
 def vecProd(*args):
 	''' Multiply n vectors. '''
-	return map(_prod, zip(*args))
+	return list(map(_prod, list(zip(*args))))
 
 def threePhasePowFac(ra,rb,rc,ia,ib,ic):
 	''' Get power factor for a row of threephase volts and amps. Gridlab-specific. '''
-	pfRow = lambda row:math.cos(math.atan((row[0]+row[1]+row[2])/(row[3]+row[4]+row[5])))
-	rows = zip(ra,rb,rc,ia,ib,ic)
-	return map(pfRow, rows)
+	pfRow = lambda row:math.cos(math.atan(old_div((row[0]+row[1]+row[2]),(row[3]+row[4]+row[5]))))
+	rows = list(zip(ra,rb,rc,ia,ib,ic))
+	return list(map(pfRow, rows))
 
 def roundSeries(ser):
 	''' Round everything in a vector to 4 sig figs. '''
-	return map(lambda x:roundSig(x,4), ser)
+	return [roundSig(x,4) for x in ser]
 
 def _groupBy(inL, func):
 	''' Take a list and func, and group items in place comparing with func. Make sure the func is an equivalence relation, or your brain will hurt. '''

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import str
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback, copy, platform
 from os.path import join as pJoin
@@ -120,7 +121,7 @@ def function():
 	typeDict = {}
 
     #two runthroughs are required, to populate all nodes before lines
-	for key,value in feederModel["tree"].items():
+	for key,value in list(feederModel["tree"].items()):
 		nodeIndexCounter = 0
 		if "object" in value:
 			typeDict[value["object"]] = value["object"]
@@ -139,7 +140,7 @@ def function():
 				feederModel["nodes"].append(newNode)
 
 			
-	for key,value in feederModel["tree"].items():
+	for key,value in list(feederModel["tree"].items()):
 		if "object" in value:
 			if value["object"] == "underground_line" or value["object"] == "transformer":
 				newLine = copy.deepcopy(linkTemplate)

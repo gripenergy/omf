@@ -17,6 +17,7 @@ Government, including the right to distribute to other Government contractors.
 
 from __future__ import division
 
+from builtins import range
 def technologyFunction(case_flag):
 	"""
 	Creates the use flags dictionary
@@ -897,7 +898,7 @@ def feederConfiguration(feederName, date_list):
 	#   [sf/apart/mh][level](R-roof,R-wall,R-floor,window layers,window glass, glazing treatment, window frame, R-door, Air infiltration, COP high, COP low)
 	#   Single family homes
 	thermal_properties = [None]*3
-	for i in xrange(3):
+	for i in range(3):
 		thermal_properties[i] = [None] * 7
 
 	thermal_properties[0][0] = [16.0, 10.0, 10.0, 1, 1, 1, 1, 3, .75, 2.8, 2.4]

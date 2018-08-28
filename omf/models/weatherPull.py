@@ -1,5 +1,8 @@
 ''' Get power and energy limits from PNNL VirtualBatteries (VBAT) load model.'''
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import json, os, shutil, math, requests, csv, __neoMetaModel__
 from os.path import join as pJoin
 from jinja2 import Template
@@ -46,7 +49,7 @@ def work(modelDir, inputDict):
 				if row[1] != "valid" and row[2] != "M":
 					d = parseDt(row[1])
 					deltatime = d - firstDT
-					verifiedData[int(math.floor((deltatime.total_seconds())/(60*60)))] = row[2]
+					verifiedData[int(math.floor(old_div((deltatime.total_seconds()),(60*60))))] = row[2]
 		#storing good data to allOutputData.json and weather.csv
 		outData["rawData"] = [float(x) for x in verifiedData]
 		with open(pJoin(modelDir,"weather.csv"),"wb") as file:

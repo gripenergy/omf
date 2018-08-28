@@ -1,6 +1,11 @@
 ''' Calculate the costs and benefits of energy storage from a distribution utility perspective. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback, csv
 import multiprocessing
 import numpy as np
@@ -28,8 +33,8 @@ def work(modelDir, inputDict):
 	(cellCapacity, dischargeRate, chargeRate, cellQuantity, cellCost) = \
 		[float(inputDict[x]) for x in ('cellCapacity', 'dischargeRate', 'chargeRate', 'cellQuantity', 'cellCost')]
 	battEff	= float(inputDict.get("batteryEfficiency", 92)) / 100.0 * float(inputDict.get("inverterEfficiency", 92)) / 100.0 * float(inputDict.get("inverterEfficiency", 92)) / 100.0
-	discountRate = float(inputDict.get('discountRate', 2.5)) / 100.0
-	dodFactor = float(inputDict.get('dodFactor', 85)) / 100.0
+	discountRate = old_div(float(inputDict.get('discountRate', 2.5)), 100.0)
+	dodFactor = old_div(float(inputDict.get('dodFactor', 85)), 100.0)
 	projYears = int(inputDict.get('projYears',10))
 	dischargePriceThreshold	= float(inputDict.get('dischargePriceThreshold',0.15))
 	chargePriceThreshold = float(inputDict.get('chargePriceThreshold',0.07))
@@ -96,7 +101,7 @@ def work(modelDir, inputDict):
 		elif row['price'] > chargePriceThreshold and battSoC == 0:
 			row['netpower'] = row['power']
 		elif row['price'] <= chargePriceThreshold and battSoC < battCapacity:
-			row['netpower'] = row['power'] + charge/battEff
+			row['netpower'] = row['power'] + old_div(charge,battEff)
 			battSoC += charge
 		else:
 			row['netpower'] = row['power']
@@ -146,18 +151,18 @@ def work(modelDir, inputDict):
 	outData['benefitNet'] = [monthlyDischargeSavings - monthlyChargeCost for monthlyChargeCost, monthlyDischargeSavings in zip(monthlyChargeCost, monthlyDischargeSavings)]
 	outData['batterySoc'] = [t['battSoC']/battCapacity*100.0*dodFactor + (100-100*dodFactor) for t in dc]
 	SoC = outData['batterySoc']
-	cycleEquivalents = sum([SoC[i]-SoC[i+1] for i,x in enumerate(SoC[0:-1]) if SoC[i+1] < SoC[i]]) / 100.0
+	cycleEquivalents = old_div(sum([SoC[i]-SoC[i+1] for i,x in enumerate(SoC[0:-1]) if SoC[i+1] < SoC[i]]), 100.0)
 	outData['cycleEquivalents'] = cycleEquivalents
-	outData['batteryLife'] = batteryCycleLife/cycleEquivalents
+	outData['batteryLife'] = old_div(batteryCycleLife,cycleEquivalents)
 	cashFlowCurve[0]-= (cellCost * cellQuantity)
 	outData['netCashflow'] = cashFlowCurve
 	outData['cumulativeCashflow'] = [sum(cashFlowCurve[0:i+1]) for i,d in enumerate(cashFlowCurve)]
 	outData['NPV'] = npv(discountRate, cashFlowCurve)
-	outData['SPP'] = (cellCost*cellQuantity)/(yearlyDischargeSavings - yearlyChargeCost)
+	outData['SPP'] = old_div((cellCost*cellQuantity),(yearlyDischargeSavings - yearlyChargeCost))
 	battCostPerCycle =  cellQuantity * cellCapacity  * cellCost / batteryCycleLife
 	lcoeTotCost = (cycleEquivalents * cellQuantity * cellCapacity * chargePriceThreshold) + (battCostPerCycle * cycleEquivalents)
 	loceTotEnergy = cycleEquivalents * cellCapacity * cellQuantity
-	LCOE = lcoeTotCost / loceTotEnergy
+	LCOE = old_div(lcoeTotCost, loceTotEnergy)
 	outData['LCOE'] = LCOE
 	# Stdout/stderr.
 	outData["stdout"] = "Success"

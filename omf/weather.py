@@ -3,8 +3,15 @@ Pull weather data from various sources.
 Source options include NOAA's USCRN, Iowa State University's METAR, and Weather Underground (currently deprecated).
 '''
 from __future__ import print_function
+from __future__ import division
 
-import os, urllib, urllib2, requests, csv, math, re, tempfile
+from future import standard_library
+standard_library.install_aliases()
+from builtins import input
+from builtins import str
+from builtins import range
+from past.utils import old_div
+import os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, requests, csv, math, re, tempfile
 from os.path import join as pJoin
 from datetime import timedelta, datetime
 from bs4 import BeautifulSoup
@@ -88,7 +95,7 @@ def _pullWeatherWunderground(start, end, airport, workDir):
 		if os.path.isfile(filename):
 			continue # We have the file already, don't re-download it.
 		try:
-			f = urllib.urlretrieve(address, filename)
+			f = urllib.request.urlretrieve(address, filename)
 		except:
 			print("ERROR: unable to get data from URL " + address)
 			continue # Just try to grab the next one.
@@ -97,7 +104,7 @@ def _pullWeatherWunderground(start, end, airport, workDir):
 def airportCodeToLatLon(airport):
 	''' Airport three letter code -> lat/lon of that location. '''
 	try:
-		url2 = urllib2.urlopen('http://www.airport-data.com/airport/'+airport+'/#location')
+		url2 = urllib.request.urlopen('http://www.airport-data.com/airport/'+airport+'/#location')
 		# print 'http://www.airport-data.com/airport/'+airport+'/#location'
 		soup = BeautifulSoup(url2, "html.parser")
 		latlon_str = str(soup.find('td', class_='tc0', text='Longitude/Latitude:').next_sibling.contents[2])
@@ -107,10 +114,10 @@ def airportCodeToLatLon(airport):
 		latlon_split=latlon_val.split('/') #latlon_split[0] is longitude; latlon_split[1] is latitude
 		lat = float(latlon_split[1])
 		lon = float(latlon_split[0])
-	except urllib2.URLError as e:
+	except urllib.error.URLError as e:
 		print('Requested URL generated error code:', e.code)
-		lat = float(raw_input('Please enter latitude manually:'))
-		lon = float(raw_input('Please enter longitude manually:'))
+		lat = float(input('Please enter latitude manually:'))
+		lon = float(input('Please enter longitude manually:'))
 	return (lat,lon)
 
 def zipCodeToClimateName(zipCode):
@@ -162,7 +169,7 @@ def zipCodeToClimateName(zipCode):
 					try:
 						distance = compareLatLon(ziplatlon, climatelatlon)
 						if (distance < lowestDistance):
-							latforpvwatts = int(round((float(climatelatlon[0])-10)/5.0)*5.0)
+							latforpvwatts = int(round(old_div((float(climatelatlon[0])-10),5.0))*5.0)
 							lowestDistance = distance
 							found = x
 					except:

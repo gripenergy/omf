@@ -1,6 +1,10 @@
 ''' Calculate solar photovoltaic system output using PVWatts. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
 from omf.models import __neoMetaModel__
@@ -66,7 +70,7 @@ def work(modelDir, inputDict):
 	# Set aggregation function constants.
 	agg = lambda x,y:_aggData(x,y,inputDict["simStartDate"],
 		int(inputDict["simLength"]), inputDict["simLengthUnits"], ssc, dat)
-	avg = lambda x:sum(x)/len(x)
+	avg = lambda x:old_div(sum(x),len(x))
 	# Timestamp output.
 	outData = {}
 	outData["timeStamps"] = [datetime.datetime.strftime(
@@ -104,20 +108,20 @@ def _aggData(key, aggFun, simStartDate, simLength, simLengthUnits, ssc, dat):
 	# first day of the year	
 	sd = datetime.datetime(2013, 0o1, 0o1) 
 	# convert difference of datedelta object to number of hours 
-	initHour = int((d-sd).total_seconds()/3600)
+	initHour = int(old_div((d-sd).total_seconds(),3600))
 	fullData = ssc.ssc_data_get_array(dat, key)
 	if simLengthUnits == "days":
 		multiplier = 24
 	else:
 		multiplier = 1
-	hourData = [fullData[(initHour+i)%8760] for i in xrange(simLength*multiplier)]
+	hourData = [fullData[(initHour+i)%8760] for i in range(simLength*multiplier)]
 	if simLengthUnits == "minutes":
 		pass
 	elif simLengthUnits == "hours":
 		return hourData
 	elif simLengthUnits == "days":
-		split = [hourData[x:x+24] for x in xrange(simLength)]
-		return map(aggFun, split)
+		split = [hourData[x:x+24] for x in range(simLength)]
+		return list(map(aggFun, split))
 
 def new(modelDir):
 	''' Create a new instance of this model. Returns true on success, false on failure. '''

@@ -36,7 +36,7 @@ def testRunner():
 	print("\n\nTEST RESULTS")
 	print("\n\n+------------------------+")
 	print(i, "tests failed:\n\n")
-	for fname, err in mis.items():
+	for fname, err in list(mis.items()):
 		print(fname)
 		print(err, "\n\n")
 	if i>0: raise Exception # Fail if there were errors.

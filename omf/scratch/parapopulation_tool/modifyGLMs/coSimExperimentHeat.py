@@ -93,6 +93,8 @@ Government, including the right to distribute to other Government contractors.
 
 from __future__ import division
 from __future__ import print_function
+from builtins import str
+from builtins import range
 import parseGLM
 import coSimConfiguration
 import feederConfiguration
@@ -198,8 +200,8 @@ if __name__ == '__main__':
 	print('creating experiment "{:s}" using transmission model "{:s}" with a total of "{:0.0f}" distribution systems'.format(experimentName, matpowerSystem, distributionNumber))
 
 	# ensure that the input GLM specification makes sense (i.e percentages sum to one). We only warn the user as it won't break anything
-	if abs(sum([inputGLM[key][0] for key in inputGLM.keys()]) - 1) > 0.001:
-		print('WARNING: your distribution system population sums to {:0.2f}, should be 1'.format(sum([inputGLM[key][0] for key in inputGLM.keys()])))
+	if abs(sum([inputGLM[key][0] for key in list(inputGLM.keys())]) - 1) > 0.001:
+		print('WARNING: your distribution system population sums to {:0.2f}, should be 1'.format(sum([inputGLM[key][0] for key in list(inputGLM.keys())])))
 
 	# We need to create the experiment folder. If it already exists we delete it and then create it
 	if os.path.isdir(experimentFilePath + '/' + experimentName):
@@ -213,9 +215,9 @@ if __name__ == '__main__':
 	shutil.copytree(includeFilePath + '/weather', experimentFilePath + '/' + experimentName + '/include/weather')
 
 	# find the appropiate number of distribution system of each to implement. We need this to create the full distribution system dictionary
-	temp = [inputGLM[key][0]*distributionNumber for key in inputGLM.keys()]
+	temp = [inputGLM[key][0]*distributionNumber for key in list(inputGLM.keys())]
 	distributionNumberVector = [math.floor(x) for x in temp]
-	for remain in xrange(int(distributionNumber - sum(distributionNumberVector))):
+	for remain in range(int(distributionNumber - sum(distributionNumberVector))):
 		idx = temp.index(max(temp))
 		distributionNumberVector[idx] += 1
 		temp[idx] = 0
@@ -224,11 +226,11 @@ if __name__ == '__main__':
 	populationDict = {}
 	count = 0
 	for key, number in enumerate(distributionNumberVector):
-		for keyOffset in xrange(0, int(number)):
-			populationDict[count] = {'name' : os.path.splitext(inputGLM.keys()[key])[0].replace('-','_').replace('.','_') + '_feeder_' + str(count) ,
-											 'feeder' : os.path.splitext(inputGLM.keys()[key])[0],
-											 'peakLoad' : inputGLM[inputGLM.keys()[key]][1]*matpowerAmpFactor,
-									         'region': inputGLM[inputGLM.keys()[key]][2],
+		for keyOffset in range(0, int(number)):
+			populationDict[count] = {'name' : os.path.splitext(list(inputGLM.keys())[key])[0].replace('-','_').replace('.','_') + '_feeder_' + str(count) ,
+											 'feeder' : os.path.splitext(list(inputGLM.keys())[key])[0],
+											 'peakLoad' : inputGLM[list(inputGLM.keys())[key]][1]*matpowerAmpFactor,
+									         'region': inputGLM[list(inputGLM.keys())[key]][2],
 									 		 'substationkV' : '',
 									 		 'substationBus' : '',
 									 		 'fncsSubscriptions' : ''}
@@ -263,10 +265,10 @@ if __name__ == '__main__':
 	# code to show the user progress in creating the experiment
 	print('creating distribution systems')
 	time.sleep(1) # seems to be needed
-	pbar = tqdm.tqdm(desc='processing',total=len(populationDict.keys()), bar_format='{desc}|{bar}| {percentage:3.0f}%', ncols=50)
+	pbar = tqdm.tqdm(desc='processing',total=len(list(populationDict.keys())), bar_format='{desc}|{bar}| {percentage:3.0f}%', ncols=50)
 	oldLen = 0
-	updateLeft = len(populationDict.keys())
-	while len(poolResults) != len(populationDict.keys()):
+	updateLeft = len(list(populationDict.keys()))
+	while len(poolResults) != len(list(populationDict.keys())):
 		updateLeft -= len(poolResults)-oldLen
 		pbar.update(len(poolResults)-oldLen)
 		oldLen = len(poolResults)
@@ -282,7 +284,7 @@ if __name__ == '__main__':
 	print('creating convenience scripts')
 
 	# we need to determine the simulation time as it is required by the MATPOWER wrapper
-	feederConfig, _ = feederConfiguration.feederConfiguration(populationDict[populationDict.keys()[0]]['feeder'])
+	feederConfig, _ = feederConfiguration.feederConfiguration(populationDict[list(populationDict.keys())[0]]['feeder'])
 	matpowerFullTime = int((datetime.datetime.strptime(feederConfig['stopdate'], '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(feederConfig['startdate'], '%Y-%m-%d %H:%M:%S')).total_seconds())
 
 	# this function will create the heat template for running the cases

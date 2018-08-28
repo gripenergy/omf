@@ -24,8 +24,18 @@ the following in a .glm:
 	}
 '''
 from __future__ import print_function
+from __future__ import division
 
-import os, urllib, json, csv, math, re, tempfile, shutil, urllib2, sys
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import filter
+from builtins import input
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
+import os, urllib.request, urllib.parse, urllib.error, json, csv, math, re, tempfile, shutil, urllib.request, urllib.error, urllib.parse, sys
 from os.path import join as pJoin
 from datetime import timedelta, datetime
 from math import modf
@@ -65,7 +75,7 @@ def _downloadWeather(start, end, airport, workDir):
 		if os.path.isfile(filename):
 			continue # We have the file already, don't re-download it.
 		try:
-			f = urllib.urlretrieve(address, filename)
+			f = urllib.request.urlretrieve(address, filename)
 		except:
 			print("ERROR: unable to get data from URL " + address)
 			continue # Just try to grab the next one.
@@ -74,7 +84,7 @@ def _downloadWeather(start, end, airport, workDir):
 def _airportCodeToLatLon(airport):
 	''' Airport three letter code -> lat/lon of that location. '''
 	try:
-		url2 = urllib2.urlopen('http://www.airport-data.com/airport/'+airport+'/#location')
+		url2 = urllib.request.urlopen('http://www.airport-data.com/airport/'+airport+'/#location')
 		# print 'http://www.airport-data.com/airport/'+airport+'/#location'
 		soup = BeautifulSoup(url2, "html.parser")
 		latlon_str = str(soup.find('td', class_='tc0', text='Longitude/Latitude:').next_sibling.contents[2])
@@ -84,10 +94,10 @@ def _airportCodeToLatLon(airport):
 		latlon_split=latlon_val.split('/') #latlon_split[0] is longitude; latlon_split[1] is latitude
 		lat = float(latlon_split[1])
 		lon = float(latlon_split[0])
-	except urllib2.URLError as e:
+	except urllib.error.URLError as e:
 		print('Requested URL generated error code:', e.code)
-		lat = float(raw_input('Please enter latitude manually:'))
-		lon = float(raw_input('Please enter longitude manually:'))
+		lat = float(input('Please enter latitude manually:'))
+		lon = float(input('Please enter longitude manually:'))
 	return (lat,lon)			
 
 def _getPeakSolar(airport, workDir, dniScale=1.0, dhiScale=1.0, ghiScale=1.0):
@@ -98,7 +108,7 @@ def _getPeakSolar(airport, workDir, dniScale=1.0, dhiScale=1.0, ghiScale=1.0):
 	metaFileName="TMY3_StationsMeta.csv"
 	address = 'http://rredc.nrel.gov/solar/old_data/nsrdb/1991-2005/tmy3/TMY3_StationsMeta.csv'
 	destination = pJoin(workDir, metaFileName)
-	urllib.urlretrieve(address, destination) # if this fails, we let it break.
+	urllib.request.urlretrieve(address, destination) # if this fails, we let it break.
 	metaFile = open(destination)
 	# Parse metadata file.
 	metaFileReader = csv.reader(metaFile, delimiter=',')
@@ -125,7 +135,7 @@ def _getPeakSolar(airport, workDir, dniScale=1.0, dhiScale=1.0, ghiScale=1.0):
 	stationId = stationResult[0] # ID string from the first result
 	# Get specified TMY csv file.
 	tmyURL = 'http://rredc.nrel.gov/solar/old_data/nsrdb/1991-2005/data/tmy3/' + stationId + 'TYA.csv'
-	tmyResult = urllib.urlretrieve(tmyURL, pJoin(workDir,stationId + 'TYA.csv'))
+	tmyResult = urllib.request.urlretrieve(tmyURL, pJoin(workDir,stationId + 'TYA.csv'))
 	tmyFile = open(tmyResult[0])
 	tmyReader = csv.reader(tmyFile, delimiter=',')
 	tmyLines = [line for line in tmyReader]
@@ -189,7 +199,7 @@ def _getPeakSolar(airport, workDir, dniScale=1.0, dhiScale=1.0, ghiScale=1.0):
 			outFile.write("{}:00,{},{},{}\n".format(str(i), str(tGhi[i]/10/smPsf), str(tDni[i]/10/smPsf), str(tDhi[i]/10/smPsf) ) )        
 		outFile.close()
 
-class Weather:
+class Weather(object):
 	''' Used to store data in _processWeather. '''
 	Time = ""
 	Temp = 68.0
@@ -383,7 +393,7 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 	# identify desired files
 	matchedList = [filePtrn.match(x) for x in matchedFiles]
 	fileParts = [m.groupdict() for m in matchedList]
-	filteredParts = list(filter(lambda x: x["loc"] == airport, fileParts))
+	filteredParts = list([x for x in fileParts if x["loc"] == airport])
 	# filteredParts now contains a list of dictionaries where "loc" == airport
 	fileDict = {}
 	for part in filteredParts:
@@ -415,9 +425,9 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 			continue
 		#myLines = [line+","+eachFile["file"] for line in myLinesPre]
 		myData.extend(myLines)
-	weatherDataInt = list(filter(lambda x: len(x) > 1, myData))						# remove all "<br />" lines
-	weatherHeader = list(filter(lambda x: "Time" in x, weatherDataInt))			# capture all header lines
-	weatherDataTrim = list(filter(lambda x: "Time" not in x, weatherDataInt))	# remove all header lines
+	weatherDataInt = list([x for x in myData if len(x) > 1])						# remove all "<br />" lines
+	weatherHeader = list([x for x in weatherDataInt if "Time" in x])			# capture all header lines
+	weatherDataTrim = list([x for x in weatherDataInt if "Time" not in x])	# remove all header lines
 	weatherSplit = [str.split(line, ",") for line in weatherDataTrim]				# split into a list of lists
 	weatherKeys = str.split(weatherHeader[0], ",")
 	#weatherData = [dict(zip(weatherKeys, thisSplit)) for thisSplit in weatherSplit] # makes a dictionary out of things, to make it complicated...
@@ -498,7 +508,7 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 		condIndex = weatherKeys.index(condKey)
 		#replace the "text" weather conditions with "values" from huge dictionary created above
 		for index,entry in enumerate(sample[condIndex] for sample in weatherData):
-			if entry in moreConditionDict.keys():
+			if entry in list(moreConditionDict.keys()):
 				weatherData[index][condIndex] = moreConditionDict[entry]
 				#print("index {:d} to ".format(index)+str(weatherData[index][condIndex]))
 				if entry is "":
@@ -644,7 +654,7 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 		timeStep = weatherList[index+1].Time - weatherList[index].Time
 		if "linear" in interpolate:
 			if timeStep > interval:
-				steps = int(math.floor(timeStep.seconds / interval.seconds))
+				steps = int(math.floor(old_div(timeStep.seconds, interval.seconds)))
 				nxEntry = weatherList[index+1]
 				#  * for each step, write an interpolated value.
 				for n in range(1, steps):
@@ -670,7 +680,7 @@ def _processWeather(start, end, airport, workDir, interpolate="linear"):
 							outData.append(sample)
 		elif "quadratic" in interpolate:
 			if timeStep > interval:
-				steps = int(math.floor(timeStep.seconds / interval.seconds))
+				steps = int(math.floor(old_div(timeStep.seconds, interval.seconds)))
 				p0 = 0
 				p1 = 0
 				p2 = 0
@@ -772,7 +782,7 @@ def zipCodeToClimateName(zipCode):
 					try:
 						distance = compareLatLon(ziplatlon, climatelatlon)
 						if (distance < lowestDistance):
-							latforpvwatts = int(round((float(climatelatlon[0])-10)/5.0)*5.0)
+							latforpvwatts = int(round(old_div((float(climatelatlon[0])-10),5.0))*5.0)
 							lowestDistance = distance
 							found = x
 					except:

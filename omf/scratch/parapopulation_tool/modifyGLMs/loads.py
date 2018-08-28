@@ -21,6 +21,7 @@ Government, including the right to distribute to other Government contractors.
 """
 from __future__ import division
 from __future__ import print_function
+from builtins import range
 import math, random
 
 def append_residential(ResTechDict, use_flags, residential_dict, last_object_key, config_data):
@@ -58,7 +59,7 @@ def append_residential(ResTechDict, use_flags, residential_dict, last_object_key
 			total_no_houses += residential_dict[x]['number_of_houses']
 
 		# Create a histogram of what the thermal integrity of the houses should be
-		thermal_integrity = [[math.ceil(x * total_no_houses) for x in config_data['thermal_percentages'][y]] for y in xrange(0,len(config_data['thermal_percentages']))]
+		thermal_integrity = [[math.ceil(x * total_no_houses) for x in config_data['thermal_percentages'][y]] for y in range(0,len(config_data['thermal_percentages']))]
 
 		# list of how many house per type
 		total_houses_by_type = [sum(x) for x in thermal_integrity] #[sum(x) for x in zip(*thermal_integrity)]
@@ -70,8 +71,8 @@ def append_residential(ResTechDict, use_flags, residential_dict, last_object_key
 		no_water_heaters = math.ceil(total_no_houses * config_data['wh_electric'])
 
 		# Create a histogram of what the heating and cooling schedules of the houses should be
-		cool_sp = [[math.ceil(x * total_houses_by_type[y]) for x in config_data['cooling_setpoint'][y][0]] for y in xrange(0,len(config_data['cooling_setpoint']))]
-		heat_sp = [[math.ceil(x * total_houses_by_type[y]) for x in config_data['heating_setpoint'][y][0]] for y in xrange(0, len(config_data['heating_setpoint']))]
+		cool_sp = [[math.ceil(x * total_houses_by_type[y]) for x in config_data['cooling_setpoint'][y][0]] for y in range(0,len(config_data['cooling_setpoint']))]
+		heat_sp = [[math.ceil(x * total_houses_by_type[y]) for x in config_data['heating_setpoint'][y][0]] for y in range(0, len(config_data['heating_setpoint']))]
 
 		# Create a histogram of what the water heater sizes should be
 		wh_sp = [math.ceil(x * no_water_heaters) for x in config_data['wh_size'] ]
@@ -93,7 +94,7 @@ def append_residential(ResTechDict, use_flags, residential_dict, last_object_key
 
 				#print('iterating over number of houses')
 				# Start adding house dictionaries
-				for y in xrange(no_houses):
+				for y in range(no_houses):
 					ResTechDict[last_object_key] = {'object' : 'triplex_meter',
 													'phases' : '{:s}'.format(phase),
 													'name' : 'tpm{:d}_{:s}'.format(y,my_name),
@@ -557,7 +558,7 @@ def add_normalized_residential_ziploads(loadshape_dict, residenntial_dict, confi
 		last_key - Last object key
 	"""
 
-	for x in residenntial_dict.keys():
+	for x in list(residenntial_dict.keys()):
 		tpload_name = residenntial_dict[x]['name']
 		tpload_parent = residenntial_dict[x].get('parent', 'None')
 		tpphases = residenntial_dict[x]['phases']
@@ -815,7 +816,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 												"powerC_rating": "50 kVA"}
 				last_object_key += 1
 				# print('iterating over number of offices')
-				for jjj in xrange(no_of_offices):
+				for jjj in range(no_of_offices):
 					floor_area_choose = 40000. * (0.5 * random.random() + 0.5)  # up to -50# #config_data.floor_area
 					ceiling_height = 13.
 					airchange_per_hour = 0.69
@@ -846,7 +847,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 
 					# for phind = 1:3 #for each of three floors (5 zones each)
 					# for phind = 1:no_of_phases #jlh
-					for phind in xrange(1,4):
+					for phind in range(1,4):
 						glmCaseDict[last_object_key] = {"object": "transformer",
 														"name": "{:s}_CTTF_{:s}_{:.0f}".format(my_name, ph[phind-1], jjj),
 														"phases": "{:s}S".format(ph[phind-1]),
@@ -870,7 +871,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 						elif skew_value > config_data["commercial_skew_max"]:
 							skew_value = config_data["commercial_skew_max"]
 
-						for zoneind in xrange(1, 6):
+						for zoneind in range(1, 6):
 							total_depth = math.sqrt(floor_area_choose / (3. * 1.5))
 							total_width = 1.5 * total_depth
 
@@ -1119,7 +1120,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 													"powerC_rating": "50 kVA"}
 					last_object_key += 1
 				# print('iterating over number of big boxes')
-				for jjj in xrange(no_of_bigboxes):
+				for jjj in range(no_of_bigboxes):
 					floor_area_choose = 20000. * (0.5 + 1. * random.random())  # +/- 50#
 					ceiling_height = 14.
 					airchange_per_hour = 1.5
@@ -1159,7 +1160,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 
 					total_index = 0
 
-					for phind in xrange(no_of_phases):
+					for phind in range(no_of_phases):
 						glmCaseDict[last_object_key] = {"object": "transformer",
 														"name": "{:s}_CTTF_{:s}_{:.0f}".format(my_name, ph[phind], jjj),
 														"phases": "{:s}S".format(ph[phind]),
@@ -1177,7 +1178,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 						last_object_key += 1
 
 						zones_per_phase = int(6. / no_of_phases)
-						for zoneind in xrange(1,zones_per_phase+1):
+						for zoneind in range(1,zones_per_phase+1):
 							total_index += 1
 							thermal_mass_per_floor_area = 3.9 * (0.8 + 0.4 * random.random())  # +/- 20#
 							floor_area = floor_area_choose / 6.
@@ -1438,7 +1439,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 				last_object_key += 1
 
 				# print('iterating over number of stripmalls')
-				for phind in xrange(no_of_phases):
+				for phind in range(no_of_phases):
 					floor_area_choose = 2400. * (0.7 + 0.6 * random.random())  # +/- 30#
 					# ceiling_height = 12
 					airchange_per_hour = 1.76
@@ -1454,7 +1455,7 @@ def append_commercial(glmCaseDict, use_flags, commercial_dict, last_object_key, 
 					thermal_mass_per_floor_area = 3.9 * (0.5 + 1. * random.random())  # +/- 50#
 					exterior_ceiling_fraction = 1.
 
-					for jjj in xrange(1, strip_per_phase+1):
+					for jjj in range(1, strip_per_phase+1):
 						# skew each office zone identically per floor
 						sk = round(2 * random.normalvariate(0, 1))
 						skew_value = config_data["commercial_skew_std"] * sk
@@ -1748,7 +1749,7 @@ def add_normalized_commercial_ziploads(loadshape_dict, commercial_dict, config_d
 		last_key - Last object key
 	"""
 
-	for x in commercial_dict.keys():
+	for x in list(commercial_dict.keys()):
 		load_name = commercial_dict[x]['name']
 		load_parent = commercial_dict[x].get('parent', 'None')
 		phases = commercial_dict[x]['phases']
@@ -1992,7 +1993,7 @@ def add_utility_storage(glmCaseDict, config_file, use_flags, peakLoad, last_key=
 			break
 
 	if foundNode:
-		for count in xrange(0,int(config_file["utility_EB"])): # we have to create the correct amount of batteries
+		for count in range(0,int(config_file["utility_EB"])): # we have to create the correct amount of batteries
 			# random variables for each EB
 
 			batterySOC = 0.7 + 0.2 * random.random() 

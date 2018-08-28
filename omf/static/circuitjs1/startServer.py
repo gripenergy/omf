@@ -2,19 +2,21 @@
 # Script to start a web server for easier circuitjs1 testing.
 
 from __future__ import print_function
-import SimpleHTTPServer
-import SocketServer
+from future import standard_library
+standard_library.install_aliases()
+import http.server
+import socketserver
 import webbrowser
 
 PORT = 8000
 
-Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+Handler = http.server.SimpleHTTPRequestHandler
 
 Handler.extensions_map.update({
     '.webapp': 'application/x-web-app-manifest+json',
 });
 
-httpd = SocketServer.TCPServer(("", PORT), Handler)
+httpd = socketserver.TCPServer(("", PORT), Handler)
 
 print("Serving at port", PORT)
 webbrowser.open_new('http://localhost:8000')

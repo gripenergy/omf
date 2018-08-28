@@ -1,5 +1,8 @@
 from __future__ import print_function
-import json, urllib, xml.etree.ElementTree as ET, omf, random, os
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+import json, urllib.request, urllib.parse, urllib.error, xml.etree.ElementTree as ET, omf, random, os
 
 def houseSpecs(lat, lon, addressOverride=None):
 	''' Get square footage, year built and a few more stats for a house at lat, lon or addressOverride. '''
@@ -7,7 +10,7 @@ def houseSpecs(lat, lon, addressOverride=None):
 	googleAPI_KEY = ''  # Optional.
 	url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + \
 		str(lat) + ',' + str(lon) + '&key=' + googleAPI_KEY
-	fnameGoog, headers = urllib.urlretrieve(url)
+	fnameGoog, headers = urllib.request.urlretrieve(url)
 	with open(fnameGoog, 'r') as jsonInput:
 		response_data = json.load(jsonInput)
 	try:
@@ -26,7 +29,7 @@ def houseSpecs(lat, lon, addressOverride=None):
 	url = 'http://www.zillow.com/webservice/GetDeepSearchResults.htm?zws-id=' + \
 		zwsID + '&address=' + \
 		street_number.replace(' ', '+') + '&citystatezip=' + zip_code
-	fnameZill, headers = urllib.urlretrieve(url)
+	fnameZill, headers = urllib.request.urlretrieve(url)
 	# XML parsing.
 	xRoot = ET.parse(fnameZill).getroot()
 	try:
@@ -53,7 +56,7 @@ def gldHouse(lat, lon, addressOverride=None, pureRandom=False):
 	Or just return a totally random GLD house. '''
 	houseArchetypes = omf.feeder.parse('./static/testFiles/houseArchetypes.glm')
 	if pureRandom:
-		newHouse = dict(random.choice(houseArchetypes.values()))
+		newHouse = dict(random.choice(list(houseArchetypes.values())))
 		newHouse['name'] = 'REPLACE_ME'
 		newHouse['parent'] = 'REPLACE_ME'
 		newHouse['schedule_skew'] = str(random.gauss(2000,600))
@@ -112,7 +115,7 @@ def addScaledRandomHouses(inFeed):
 	for tripKey in tripLoadKeys:
 		tMeter = inFeed[getByKeyVal(inFeed, 'name', inFeed[tripKey]['parent'])]
 		tPower = complex(inFeed[tripKey]['power_12']).real
-		newHouse = dict(random.choice(houseArchetypes.values()))
+		newHouse = dict(random.choice(list(houseArchetypes.values())))
 		newHouse['name'] += '_' + str(tripKey)
 		newHouse['parent'] = tMeter['name']
 		newHouse['schedule_skew'] = str(random.gauss(2000,500))

@@ -1,6 +1,11 @@
 ''' Calculate the costs and benefits of energy storage from a distribution utility perspective. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback, csv
 import multiprocessing
 import numpy as np
@@ -26,9 +31,9 @@ def work(modelDir, inputDict):
 	(cellCapacity, dischargeRate, chargeRate, cellQuantity, demandCharge, cellCost) = \
 		[float(inputDict[x]) for x in ('cellCapacity', 'dischargeRate', 'chargeRate', 'cellQuantity', 'demandCharge', 'cellCost')]
 	battEff	= float(inputDict.get("batteryEfficiency", 92)) / 100.0 * float(inputDict.get("inverterEfficiency", 92)) / 100.0 * float(inputDict.get("inverterEfficiency", 92)) / 100.0
-	discountRate = float(inputDict.get('discountRate', 2.5)) / 100.0
+	discountRate = old_div(float(inputDict.get('discountRate', 2.5)), 100.0)
 	retailCost = float(inputDict.get('retailCost', 0.07))
-	dodFactor = float(inputDict.get('dodFactor', 85)) / 100.0
+	dodFactor = old_div(float(inputDict.get('dodFactor', 85)), 100.0)
 	projYears = int(inputDict.get('projYears',10))
 	startPeakHour = int(inputDict.get('startPeakHour',18))
 	endPeakHour = int(inputDict.get('endPeakHour',24))
@@ -95,7 +100,7 @@ def work(modelDir, inputDict):
 				battSoC -= discharge
 				# Update minimum state-of-charge for this month.
 				battDoD[month] = min(battSoC,battDoD[month])
-				row['netpower'] = row['power'] + charge/battEff - discharge
+				row['netpower'] = row['power'] + old_div(charge,battEff) - discharge
 				row['battSoC'] = battSoC
 			capacityLimited = min(battDoD) < 0
 			ps = [ps[month]-(battDoD[month] < 0) for month in range(12)]
@@ -115,7 +120,7 @@ def work(modelDir, inputDict):
 			#If hour is outside peak hours and the battery isnt fully charged, charge it
 				if battSoC < battCapacity:
 					battSoC += charge
-					row['netpower'] = row['power'] + charge/battEff
+					row['netpower'] = row['power'] + old_div(charge,battEff)
 				else:
 					row['netpower'] = row['power']
 			row['battSoC'] = battSoC
@@ -159,7 +164,7 @@ def work(modelDir, inputDict):
 				# Otherwise charge the battery.
 				if battSoC < battCapacity:
 					battSoC += charge
-					row['netpower'] = row['power'] + charge/battEff
+					row['netpower'] = row['power'] + old_div(charge,battEff)
 				else:
 					row['netpower'] = row['power']
 			row['battSoC'] = battSoC
@@ -189,15 +194,15 @@ def work(modelDir, inputDict):
 		#peakShave of 0 means no benefits, so make it -1
 	if dispatchStrategy == 'optimal':
 		cashFlowCurve = [peakShaveSum * demandCharge for year in range(projYears)]
-		outData['SPP'] = (cellCost*cellQuantity)/(peakShaveSum*demandCharge)
+		outData['SPP'] = old_div((cellCost*cellQuantity),(peakShaveSum*demandCharge))
 	elif dispatchStrategy == 'daily':
 		#cashFlowCurve is $ in from peak shaving minus the cost to recharge the battery every day of the year
 		cashFlowCurve = [(peakShaveSum * demandCharge)-(battCapacity*365*retailCost) for year in range(projYears)]
 		#simplePayback is also affected by the cost to recharge the battery every day of the year
-		outData['SPP'] = (cellCost*cellQuantity)/((peakShaveSum*demandCharge)-(battCapacity*365*retailCost))
+		outData['SPP'] = old_div((cellCost*cellQuantity),((peakShaveSum*demandCharge)-(battCapacity*365*retailCost)))
 	else:
 		cashFlowCurve = [(peakShaveSum * demandCharge)-(totalYearlyCharge*retailCost) for year in range(projYears)]
-		outData['SPP'] = (cellCost*cellQuantity)/((peakShaveSum*demandCharge)-(totalYearlyCharge*retailCost))
+		outData['SPP'] = old_div((cellCost*cellQuantity),((peakShaveSum*demandCharge)-(totalYearlyCharge*retailCost)))
 	cashFlowCurve[0]-= (cellCost * cellQuantity)
 	outData['netCashflow'] = cashFlowCurve
 	outData['cumulativeCashflow'] = [sum(cashFlowCurve[0:i+1]) for i,d in enumerate(cashFlowCurve)]
@@ -207,9 +212,9 @@ def work(modelDir, inputDict):
 	outData['batterySoc'] = [t['battSoC']/battCapacity*100.0*dodFactor + (100-100*dodFactor) for t in dc]
 	# Estimate number of cyles the battery went through.
 	SoC = outData['batterySoc']
-	cycleEquivalents = sum([SoC[i]-SoC[i+1] for i,x in enumerate(SoC[0:-1]) if SoC[i+1] < SoC[i]]) / 100.0
+	cycleEquivalents = old_div(sum([SoC[i]-SoC[i+1] for i,x in enumerate(SoC[0:-1]) if SoC[i+1] < SoC[i]]), 100.0)
 	outData['cycleEquivalents'] = cycleEquivalents
-	outData['batteryLife'] = batteryCycleLife/cycleEquivalents
+	outData['batteryLife'] = old_div(batteryCycleLife,cycleEquivalents)
 	# # Output some matplotlib results as well.
 	# plt.plot([t['power'] for t in dc])
 	# plt.plot([t['netpower'] for t in dc])
@@ -222,7 +227,7 @@ def work(modelDir, inputDict):
 	totMonNum = []
 	monthlyDemand = []
 	for x in range (0, len(dcGroupByMonth)):
-		totMonNum.append(sum(dcGroupByMonth[x])/1000)
+		totMonNum.append(old_div(sum(dcGroupByMonth[x]),1000))
 		monthlyDemand.append([outData['months'][x], totMonNum[x]])
 	outData['monthlyDemand'] = totMonNum
 	outData['ps'] = ps
@@ -252,7 +257,7 @@ def work(modelDir, inputDict):
 	battCostPerCycle =  cellQuantity * cellCapacity * cellCost / batteryCycleLife
 	lcoeTotCost = (cycleEquivalents *  cellQuantity * cellCapacity * retailCost) + (battCostPerCycle * cycleEquivalents)
 	loceTotEnergy = cycleEquivalents * cellQuantity * cellCapacity
-	LCOE = lcoeTotCost / loceTotEnergy
+	LCOE = old_div(lcoeTotCost, loceTotEnergy)
 	outData['LCOE'] = LCOE
 	# Stdout/stderr.
 	outData['stdout'] = 'Success'

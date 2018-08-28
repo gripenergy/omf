@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import str
 import platform, os, sys
 
 # Note: all installations require git to clone the omf first.
@@ -61,7 +62,7 @@ elif platform.system()=='Windows':
 	# HACK: more refreshes of the environment.
 	os.system("timeout 5")
 	os.system("refreshenv")
-        os.system("C:\\Python27\\python.exe -m pip install scipy")
+	os.system("C:\\Python27\\python.exe -m pip install scipy")
 	os.system("C:\\Python27\\python.exe -m pip install setuptools>=33.1.1")
 	os.system("C:\\Python27\\python.exe -m pip install -r requirements.txt")
 	os.system("C:\\Python27\\python.exe -m setup.py develop")

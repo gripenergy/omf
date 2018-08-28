@@ -26,6 +26,8 @@ Government, including the right to distribute to other Government contractors.
 
 from __future__ import division
 from __future__ import print_function
+from builtins import str
+from builtins import range
 import re, warnings
 from functools import reduce
 
@@ -66,7 +68,7 @@ def _tokenizeGlm(inputStr, filePath=True):
     # Tokenize around semicolons, braces and whitespace.
     tokenized = re.split(r'(;|\}|\{|\s)',data)
     # Get rid of whitespace strings.
-    basicList = filter(lambda x:x!='' and x!=' ', tokenized)
+    basicList = [x for x in tokenized if x!='' and x!=' ']
     return basicList
 
 def _parseTokenList(tokenList):
@@ -150,10 +152,10 @@ def _parseTokenList(tokenList):
 
     # this section will catch old glm format and translate it. Not in the most robust way but should work for now
     objectsToDelete = []
-    for key in tree.keys():
-        if 'object' in tree[key].keys():
+    for key in list(tree.keys()):
+        if 'object' in list(tree[key].keys()):
             # if no name is present and the object name is the old syntax we need to be creative and pull the object name and use it
-            if 'name' not in tree[key].keys() and tree[key]['object'].find(':') >= 0:
+            if 'name' not in list(tree[key].keys()) and tree[key]['object'].find(':') >= 0:
                 tree[key]['name'] = tree[key]['object'].replace(':', '_')
 
             # strip the old syntax from the object name
@@ -168,17 +170,17 @@ def _parseTokenList(tokenList):
                 objectsToDelete.append(key)
 
             # if we are working with fuses let's set the mean replace time to 1 hour if not specified. Then we aviod a warning!
-            if tree[key]['object'] == 'fuse' and 'mean_replacement_time' not in tree[key].keys():
+            if tree[key]['object'] == 'fuse' and 'mean_replacement_time' not in list(tree[key].keys()):
                 tree[key]['mean_replacement_time'] = 3600.0
 
             # FNCS is not able to handle names that include "-" so we will replace that with "_"
-            if 'name' in tree[key].keys():
+            if 'name' in list(tree[key].keys()):
                 tree[key]['name'] = tree[key]['name'].replace('-', '_')
-            if 'parent' in tree[key].keys():
+            if 'parent' in list(tree[key].keys()):
                 tree[key]['parent'] = tree[key]['parent'].replace('-', '_')
-            if 'from' in tree[key].keys():
+            if 'from' in list(tree[key].keys()):
                 tree[key]['from'] = tree[key]['from'].replace('-', '_')
-            if 'to' in tree[key].keys():
+            if 'to' in list(tree[key].keys()):
                 tree[key]['to'] = tree[key]['to'].replace('-', '_')
 
     # deleting all recorders from the files
@@ -194,7 +196,7 @@ def sortedWrite(inTree):
     Sometimes Gridlab breaks if you rearrange a GLM.
     """
 
-    sortedKeys = sorted(inTree.keys(), key=int)
+    sortedKeys = sorted(list(inTree.keys()), key=int)
     output = ''
     try:
         for key in sortedKeys:
@@ -233,9 +235,9 @@ def _dictToString(inDict):
     elif 'class' in inDict:
         prop = ''
         # this section will ensure we can get around the fact that you can't have to key's with the same name!
-        if 'variable_types' in inDict.keys() and 'variable_names' in inDict.keys() and len(inDict['variable_types']) == len(inDict['variable_names']):
+        if 'variable_types' in list(inDict.keys()) and 'variable_names' in list(inDict.keys()) and len(inDict['variable_types']) == len(inDict['variable_names']):
             prop += 'class ' + inDict['class'] + ' {\n'
-            for x in xrange(len(inDict['variable_types'])):
+            for x in range(len(inDict['variable_types'])):
                 prop += '\t' + inDict['variable_types'][x] + ' ' + inDict['variable_names'][x] + ';\n'
 
             prop += '}\n'

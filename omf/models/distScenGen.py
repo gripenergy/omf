@@ -2,6 +2,9 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import next
+from builtins import str
+from builtins import range
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime as dt, csv, math
 import traceback
 from os.path import join as pJoin

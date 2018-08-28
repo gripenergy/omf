@@ -1,6 +1,12 @@
 ''' Powerflow results for one Gridlab instance. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import map
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, math, gc, networkx as nx,  numpy as np
 from networkx.drawing.nx_agraph import graphviz_layout
 from matplotlib import pyplot as plt
@@ -72,7 +78,7 @@ def work(modelDir, inputDict):
 		totalZIP = 0
 		gbWH = 0
 		gbZIP = 0
-		for key in tree.keys():
+		for key in list(tree.keys()):
 			# Waterheater Controller properties
 			if ('name' in tree[key]) and (tree[key].get('object') == 'waterheater'):
 		 		totalWH += 1
@@ -196,10 +202,10 @@ def work(modelDir, inputDict):
 	# Voltage Band
 	if 'VoltageJiggle.csv' in rawOut:
 		outData['allMeterVoltages'] = {}
-		outData['allMeterVoltages']['Min'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['min(voltage_12.mag)']], min, level)
-		outData['allMeterVoltages']['Mean'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['mean(voltage_12.mag)']], avg, level)
-		outData['allMeterVoltages']['StdDev'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['std(voltage_12.mag)']], avg, level)
-		outData['allMeterVoltages']['Max'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['max(voltage_12.mag)']], max, level)
+		outData['allMeterVoltages']['Min'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['min(voltage_12.mag)']], min, level)
+		outData['allMeterVoltages']['Mean'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['mean(voltage_12.mag)']], avg, level)
+		outData['allMeterVoltages']['StdDev'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['std(voltage_12.mag)']], avg, level)
+		outData['allMeterVoltages']['Max'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['max(voltage_12.mag)']], max, level)
 	# Power Consumption
 	outData['Consumption'] = {}
 	# Set default value to be 0, avoiding missing value when computing Loads
@@ -287,7 +293,7 @@ def work(modelDir, inputDict):
 	# Print gridBallast Outputs to allOutputData.json
 	outData['gridBallast'] = {}
 	if 'allMeterPower.csv' in rawOut:
-		outData['gridBallast']['totalNetworkLoad'] = [x / 1000 for x in rawOut.get('allMeterPower.csv')['sum(measured_real_power)']] #Convert W to kW
+		outData['gridBallast']['totalNetworkLoad'] = [old_div(x, 1000) for x in rawOut.get('allMeterPower.csv')['sum(measured_real_power)']] #Convert W to kW
 	if ('allZIPloadPower.csv' in rawOut) and ('allWaterheaterLoad.csv' in rawOut):
 		outData['gridBallast']['availabilityMagnitude'] = [x[0] + x[1] for x in zip(rawOut.get('allWaterheaterLoad.csv')['sum(actual_load)'], rawOut.get('allZIPloadPower.csv')['sum(base_power)'])]
 	if 'allZIPloadDemand.csv' in rawOut:
@@ -340,8 +346,8 @@ def work(modelDir, inputDict):
 	eventEndIdx =  dateTimeStamps.index(eventEnd)
 	# Recovery Time
 	whOn = outData['gridBallast']['waterheaterOn']
-	whOnList = whOn.values()
-	whOnZip = zip(*whOnList)
+	whOnList = list(whOn.values())
+	whOnZip = list(zip(*whOnList))
 	whOnSum = [sum(x) for x in whOnZip]
 	anyOn = [x > 0 for x in whOnSum]
 	tRecIdx = anyOn.index(True, eventEndIdx)
@@ -368,8 +374,8 @@ def work(modelDir, inputDict):
 	outData['gridBallast']['availability'] = 100.0 * sum(available) / (int(inputDict['simLength']) - int(eventLength[1]) - 1)
 	# Waterheater Temperature Drop calculations
 	whTemp = outData['gridBallast']['waterheaterTemp']
-	whTempList = whTemp.values()
-	whTempZip = zip(*whTempList)
+	whTempList = list(whTemp.values())
+	whTempZip = list(zip(*whTempList))
 	whTempDrops = []
 	LOWER_LIMIT_TEMP = 110 # Used for calculating quality of service. Typical hot shower temp = 105 F.
 	for time in whTempZip:
@@ -378,11 +384,11 @@ def work(modelDir, inputDict):
 	outData['gridBallast']['waterheaterTempDrops'] = whTempDrops
 	# ZIPload calculations for Availability and QoS
 	zPower = outData['gridBallast']['ZIPloadPower']
-	zPowerList = zPower.values()
-	zPowerZip = zip(*zPowerList)
+	zPowerList = list(zPower.values())
+	zPowerZip = list(zip(*zPowerList))
 	zDemand = outData['gridBallast']['ZIPloadDemand']
-	zDemandList  = zDemand.values()
-	zDemandZip = zip(*zDemandList)
+	zDemandList  = list(zDemand.values())
+	zDemandZip = list(zip(*zDemandList))
 	zDrops = []
 	for x, y in zip(zPowerZip,zDemandZip):
 		zDrop = 0
@@ -438,7 +444,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 	for step, stamp in enumerate(rawOut['aVoltDump.csv']['# timestamp']):
 		# Build voltage map.
 		nodeVolts[step] = {}
-		for nodeName in [x for x in rawOut.get('aVoltDump.csv',{}).keys() + rawOut.get('1nVoltDump.csv',{}).keys() + rawOut.get('1mVoltDump.csv',{}).keys() if x != '# timestamp']:
+		for nodeName in [x for x in list(rawOut.get('aVoltDump.csv',{}).keys()) + list(rawOut.get('1nVoltDump.csv',{}).keys()) + list(rawOut.get('1mVoltDump.csv',{}).keys()) if x != '# timestamp']:
 			allVolts = []
 			for phase in ['a','b','c','1n','2n','1m','2m']:
 				try:
@@ -452,7 +458,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 				if phaseVolt != 0.0:
 					if _digits(phaseVolt)>3:
 						# Normalize to 120 V standard
-						phaseVolt = phaseVolt*(120/feedVoltage)
+						phaseVolt = phaseVolt*(old_div(120,feedVoltage))
 					allVolts.append(phaseVolt)
 			# HACK: Take average of all phases to collapse dimensionality.
 			nodeVolts[step][nodeName] = avg(allVolts)
@@ -491,7 +497,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 
 def avg(inList):
 	''' Average a list. Really wish this was built-in. '''
-	return sum(inList)/len(inList)
+	return old_div(sum(inList),len(inList))
 
 def hdmAgg(series, func, level):
 	''' Simple hour/day/month aggregation for Gridlab. '''
@@ -507,12 +513,12 @@ def aggSeries(timeStamps, timeSeries, func, level):
 		endPos = 7
 	elif level=='days':
 		endPos = 10
-	combo = zip(timeStamps, timeSeries)
+	combo = list(zip(timeStamps, timeSeries))
 	# Group by level:
 	groupedCombo = _groupBy(combo, lambda x1,x2: x1[0][0:endPos]==x2[0][0:endPos])
 	# Get rid of the timestamps:
 	groupedRaw = [[pair[1] for pair in group] for group in groupedCombo]
-	return map(func, groupedRaw)
+	return list(map(func, groupedRaw))
 
 def _pyth(x,y):
 	''' Compute the third side of a triangle--BUT KEEP SIGNS THE SAME FOR DG. '''
@@ -526,12 +532,12 @@ def _digits(x):
 
 def vecPyth(vx,vy):
 	''' Pythagorean theorem for pairwise elements from two vectors. '''
-	rows = zip(vx,vy)
-	return map(lambda x:_pyth(*x), rows)
+	rows = list(zip(vx,vy))
+	return [_pyth(*x) for x in rows]
 
 def vecSum(*args):
 	''' Add n vectors. '''
-	return map(sum,zip(*args))
+	return list(map(sum,list(zip(*args))))
 
 def _prod(inList):
 	''' Product of all values in a list. '''
@@ -539,17 +545,17 @@ def _prod(inList):
 
 def vecProd(*args):
 	''' Multiply n vectors. '''
-	return map(_prod, zip(*args))
+	return list(map(_prod, list(zip(*args))))
 
 def threePhasePowFac(ra,rb,rc,ia,ib,ic):
 	''' Get power factor for a row of threephase volts and amps. Gridlab-specific. '''
-	pfRow = lambda row:math.cos(math.atan((row[0]+row[1]+row[2])/(row[3]+row[4]+row[5])))
-	rows = zip(ra,rb,rc,ia,ib,ic)
-	return map(pfRow, rows)
+	pfRow = lambda row:math.cos(math.atan(old_div((row[0]+row[1]+row[2]),(row[3]+row[4]+row[5]))))
+	rows = list(zip(ra,rb,rc,ia,ib,ic))
+	return list(map(pfRow, rows))
 
 def roundSeries(ser):
 	''' Round everything in a vector to 4 sig figs. '''
-	return map(lambda x:roundSig(x,4), ser)
+	return [roundSig(x,4) for x in ser]
 
 def _groupBy(inL, func):
 	''' Take a list and func, and group items in place comparing with func. Make sure the func is an equivalence relation, or your brain will hurt. '''

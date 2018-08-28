@@ -1,12 +1,16 @@
 ''' Draw America, also data. '''
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import range
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.basemap import maskoceans
 from random import uniform, choice
-import csv, urllib
+import csv, urllib.request, urllib.parse, urllib.error
 
 def baseMapSetup():
 	# Set up chart.
@@ -29,7 +33,7 @@ def baseMapSetup():
 def addOsmImage():
 	# Getting image from OSM to show map features. 
 	m = baseMapSetup()
-	fname, headers = urllib.urlretrieve('http://render.openstreetmap.org/cgi-bin/export?bbox=-80.05067825317383,38.39379044654673,-79.96004104614258,38.4377914419658&scale=27116&format=png', filename='test.png')
+	fname, headers = urllib.request.urlretrieve('http://render.openstreetmap.org/cgi-bin/export?bbox=-80.05067825317383,38.39379044654673,-79.96004104614258,38.4377914419658&scale=27116&format=png', filename='test.png')
 	print('Downloaded file:', fname)
 	im = plt.imread(fname)
 	m.imshow(interpolation='lanczos', origin='upper')
@@ -65,7 +69,7 @@ def readNsol():
 		for row in read:
 			nsolData.append(row)
 	headers = nsolData[0]
-	table = [dict(zip(headers,row)) for row in nsolData[1:]]
+	table = [dict(list(zip(headers,row))) for row in nsolData[1:]]
 	return table
 
 def nsolScatter():

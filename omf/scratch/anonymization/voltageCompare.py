@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import next
 import json, math, random, datetime, os
 from os.path import join as pJoin
 import csv

@@ -1,6 +1,11 @@
 ''' Calculate solar photovoltaic system output using our special financial model. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, math, datetime as dt
 from os.path import join as pJoin
 from jinja2 import Template
@@ -49,7 +54,7 @@ def work(modelDir, inputDict):
 	ssc.ssc_data_set_number(dat, "azimuth", float(inputDict.get("azimuth", 180)))
 	# Advanced inputs with defaults.
 	ssc.ssc_data_set_number(dat, "rotlim", float(inputDict.get("rotlim", 45)))
-	ssc.ssc_data_set_number(dat, "gamma", float(inputDict.get("gamma", 0.5))/100)
+	ssc.ssc_data_set_number(dat, "gamma", old_div(float(inputDict.get("gamma", 0.5)),100))
 	# Complicated optional inputs.
 	if (inputDict.get("tilt",0) == "-"):
 		tilt_eq_lat = 1.0
@@ -90,25 +95,25 @@ def work(modelDir, inputDict):
 	invSizeWatts = float(inputDict.get("inverterSize", 0)) * 1000
 	outData["InvClipped"] = [x if x < invSizeWatts else invSizeWatts for x in outData["powerOutputAc"]]
 	try:
-		outData["percentClipped"] = 100 * (1.0 - sum(outData["InvClipped"]) / sum(outData["powerOutputAc"]))
+		outData["percentClipped"] = 100 * (1.0 - old_div(sum(outData["InvClipped"]), sum(outData["powerOutputAc"])))
 	except ZeroDivisionError:
 		outData["percentClipped"] = 0.0
 	# Cashflow outputs.
 	lifeSpan = int(inputDict.get("lifeSpan",30))
-	lifeYears = range(1, 1 + lifeSpan)
+	lifeYears = list(range(1, 1 + lifeSpan))
 	retailCost = float(inputDict.get("retailCost",0.0))
-	degradation = float(inputDict.get("degradation",0.5))/100
+	degradation = old_div(float(inputDict.get("degradation",0.5)),100)
 	installCost = float(inputDict.get("installCost",0.0))
-	discountRate = float(inputDict.get("discountRate", 7))/100
+	discountRate = old_div(float(inputDict.get("discountRate", 7)),100)
 	outData["oneYearGenerationWh"] = sum(outData["powerOutputAc"])
-	outData["lifeGenerationDollars"] = [retailCost*(1.0/1000)*outData["oneYearGenerationWh"]*(1.0-(x*degradation)) for x in lifeYears]
+	outData["lifeGenerationDollars"] = [retailCost*(old_div(1.0,1000))*outData["oneYearGenerationWh"]*(1.0-(x*degradation)) for x in lifeYears]
 	outData["lifeOmCosts"] = [-1.0*float(inputDict["omCost"]) for x in lifeYears]
 	outData["lifePurchaseCosts"] = [-1.0 * installCost] + [0 for x in lifeYears[1:]]
 	srec = inputDict.get("srecCashFlow", "").split(",")
-	outData["srecCashFlow"] = map(float,srec) + [0 for x in lifeYears[len(srec):]]
+	outData["srecCashFlow"] = list(map(float,srec)) + [0 for x in lifeYears[len(srec):]]
 	outData["netCashFlow"] = [x+y+z+a for (x,y,z,a) in zip(outData["lifeGenerationDollars"], outData["lifeOmCosts"], outData["lifePurchaseCosts"], outData["srecCashFlow"])]
-	outData["cumCashFlow"] = map(lambda x:x, _runningSum(outData["netCashFlow"]))
-	outData["ROI"] = roundSig(sum(outData["netCashFlow"]), 3) / (-1*roundSig(sum(outData["lifeOmCosts"]), 3) + -1*roundSig(sum(outData["lifePurchaseCosts"], 3)))
+	outData["cumCashFlow"] = [x for x in _runningSum(outData["netCashFlow"])]
+	outData["ROI"] = old_div(roundSig(sum(outData["netCashFlow"]), 3), (-1*roundSig(sum(outData["lifeOmCosts"]), 3) + -1*roundSig(sum(outData["lifePurchaseCosts"], 3))))
 	outData["NPV"] = roundSig(npv(discountRate, outData["netCashFlow"]), 3) 
 	outData["lifeGenerationWh"] = sum(outData["powerOutputAc"])*lifeSpan	
 	outData["lifeEnergySales"] = sum(outData["lifeGenerationDollars"])
@@ -120,12 +125,12 @@ def work(modelDir, inputDict):
 	# Monthly aggregation outputs.
 	months = {"Jan":0,"Feb":1,"Mar":2,"Apr":3,"May":4,"Jun":5,"Jul":6,"Aug":7,"Sep":8,"Oct":9,"Nov":10,"Dec":11}
 	totMonNum = lambda x:sum([z for (y,z) in zip(outData["timeStamps"], outData["powerOutputAc"]) if y.startswith(simStartDate[0:4] + "-{0:02d}".format(x+1))])
-	outData["monthlyGeneration"] = [[a, totMonNum(b)] for (a,b) in sorted(months.items(), key=lambda x:x[1])]
+	outData["monthlyGeneration"] = [[a, totMonNum(b)] for (a,b) in sorted(list(months.items()), key=lambda x:x[1])]
 	# Heatmaped hour+month outputs.
-	hours = range(24)
+	hours = list(range(24))
 	from calendar import monthrange
 	totHourMon = lambda h,m:sum([z for (y,z) in zip(outData["timeStamps"], outData["powerOutputAc"]) if y[5:7]=="{0:02d}".format(m+1) and y[11:13]=="{0:02d}".format(h+1)])
-	outData["seasonalPerformance"] = [[x,y,totHourMon(x,y) / monthrange(int(simStartDate[:4]), y+1)[1]] for x in hours for y in months.values()]
+	outData["seasonalPerformance"] = [[x,y,old_div(totHourMon(x,y), monthrange(int(simStartDate[:4]), y+1)[1])] for x in hours for y in list(months.values())]
 	# Stdout/stderr.
 	outData["stdout"] = "Success"
 	outData["stderr"] = ""
@@ -137,12 +142,12 @@ def _dumpDataToExcel(modelDir):
 	wb = xlwt.Workbook()
 	sh1 = wb.add_sheet("All Input Data")
 	inJson = json.load(open(pJoin(modelDir, "allInputData.json")))
-	size = len(inJson.keys())
+	size = len(list(inJson.keys()))
 	for i in range(size):
-		sh1.write(i, 0, inJson.keys()[i])
+		sh1.write(i, 0, list(inJson.keys())[i])
 
 	for i in range(size):
-		sh1.write(i, 1, inJson.values()[i])
+		sh1.write(i, 1, list(inJson.values())[i])
 
 	outJson = json.load(open(pJoin(modelDir, "allOutputData.json")))
 	sh1.write(0, 5, "Lat")

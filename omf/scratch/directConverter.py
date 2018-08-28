@@ -6,6 +6,7 @@ Output is written to the current working directory.
 '''
 from __future__ import print_function
 
+from builtins import str
 from os.path import exists, splitext, abspath
 from os import getcwd
 import argparse, sys

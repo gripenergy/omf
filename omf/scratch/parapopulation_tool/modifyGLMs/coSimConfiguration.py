@@ -27,6 +27,8 @@ Government, including the right to distribute to other Government contractors.
 
 from __future__ import division
 from __future__ import print_function
+from builtins import str
+from builtins import range
 import parseGLM
 import feederConfiguration
 import feederGenerator
@@ -287,7 +289,7 @@ def createMATPOWERSystem(populationDict, experimentFilePath, experimentName, mat
 	# We use ceil() to ensure that the sum will always be greater than or equal to number of distribution systems
 	matpowerDistributionCountAtBuses = []
 	for load in matpowerLoad:
-		matpowerDistributionCountAtBuses.append(math.ceil((load / totalMatpowerLoad) * len(populationDict.keys())))
+		matpowerDistributionCountAtBuses.append(math.ceil((load / totalMatpowerLoad) * len(list(populationDict.keys()))))
 
 	# determine the number of regions specified in the MATPWOER case file contains region specification
 	if 'region' in matpowerCaseStruct:
@@ -418,7 +420,7 @@ def createMATPOWERSystem(populationDict, experimentFilePath, experimentName, mat
 
 	matpowerFile.write('];\n')
 	matpowerFile.write('%% Number of distribution feeders (GridLAB-D instances)\n')
-	matpowerFile.write('mpc.SubNumFNCS = {:d}\n'.format(int(len(populationDict.keys()))))
+	matpowerFile.write('mpc.SubNumFNCS = {:d}\n'.format(int(len(list(populationDict.keys())))))
 	matpowerFile.write('%% Substation names, and the transmission network bus where it is connected to\n')
 	matpowerFile.write('mpc.SubNameFNCS = [\n')
 	# loop through the population dictionary and start placing the distribution systems
@@ -467,7 +469,7 @@ def createMATPOWERSystem(populationDict, experimentFilePath, experimentName, mat
 		busLoadReal = busRow[2]
 		busLoadReac = busRow[3]
 		profile = random.randint(0, 8) # we have 9 profiles and we want to pick one at random
-		for loadLen in xrange(0, 288):
+		for loadLen in range(0, 288):
 			if not loadLen == 287:
 				loadprofilerealFile.write('{:0.2f} '.format(busLoadReal * normalizedLoadData[loadLen, profile]))
 				loadprofilereacFile.write('{:0.2f} '.format(busLoadReac * normalizedLoadData[loadLen, profile]))
@@ -567,7 +569,7 @@ def createHeatTemplate(maximumInstanceCount, selectedFlavors, flavors, populatio
 
 	# create list of feeders and divide into the chunks we need
 	feederNames = [populationDict[x]['name'] for x in populationDict]
-	feederNames = [feederNames[x:x+feederPerChunk] for x in xrange(0, len(feederNames), feederPerChunk)]
+	feederNames = [feederNames[x:x+feederPerChunk] for x in range(0, len(feederNames), feederPerChunk)]
 
 	# open the files we need
 	heatFile = open(experimentFilePath + '/' + experimentName + '/heat.txt', 'wb')
@@ -653,7 +655,7 @@ def createHeatTemplate(maximumInstanceCount, selectedFlavors, flavors, populatio
 	heatFile.write('              start_MATPOWER {:s}.m real_power_demand.txt reactive_power_demand.txt {:d} {:d} "{:s}" load_data.txt dispatchable_load_data.txt generator_data.txt &> simLog.out &\n'.format(matpowerSystem, int(matpowerFullTime), int(matpowerOPFTime), feederConfig['startdate']))
 	heatFile.write('            # ...\n\n')
 
-	for idx in xrange(0, gldInstanceCount):	
+	for idx in range(0, gldInstanceCount):	
 		heatFile.write('  GridLAB-machine-{:d}:\n'.format(idx+1))
 		heatFile.write('    type: OS::Nova::Server\n')
 		heatFile.write('    properties:\n')
@@ -725,7 +727,7 @@ def createConvenienceScripts(populationDict, experimentResources, matpowerFilePa
 	copyFile.write('clear\n\n')
 
 	# check how many resources we have available
-	if len(experimentResources.keys()) == 1:
+	if len(list(experimentResources.keys())) == 1:
 		# create the run all script. This script will run the experiment. if we only have one resource we do not have to do anything fancy and the script is easy to create
 		runFile.write('#!/bin/bash\n\n')
 		runFile.write('clear\n')
@@ -738,8 +740,8 @@ def createConvenienceScripts(populationDict, experimentResources, matpowerFilePa
 		runFile.write('fncsLogLevel="{:s}"\n'.format(fncsLogLevel))
 		runFile.write('matpowerLogLevel="{:s}"\n'.format(matpowerLogLevel))
 		runFile.write('aggregatorLogLevel="{:s}"\n'.format(matpowerLogLevel))
-		runFile.write('fncsPath="{:s}/bin"\n'.format(experimentResources[experimentResources.keys()[0]][3]))
-		runFile.write('gldPath="{:s}/bin"\n'.format(experimentResources[experimentResources.keys()[0]][4]))
+		runFile.write('fncsPath="{:s}/bin"\n'.format(experimentResources[list(experimentResources.keys())[0]][3]))
+		runFile.write('gldPath="{:s}/bin"\n'.format(experimentResources[list(experimentResources.keys())[0]][4]))
 		runFile.write('experimentPath="{:s}"\n'.format(experimentFilePath + '/' + experimentName))
 		runFile.write('fncsBrokerPort="tcp://*:{:s}"\n'.format(fncsPort))
 		runFile.write('fncsBrokerIP="tcp://localhost:{:s}"\n\n'.format(fncsPort))
@@ -755,7 +757,7 @@ def createConvenienceScripts(populationDict, experimentResources, matpowerFilePa
 		# add the broker process
 		if useFlags['useFNCS'] == 1:
 			runFile.write('export FNCS_BROKER=$fncsBrokerPort\n')
-			runFile.write('cd $fncsPath && exec ./fncs_broker {:d} &> $experimentPath/$logFile &\n'.format(int(len(populationDict.keys()))+1+len(aggregatorList)))
+			runFile.write('cd $fncsPath && exec ./fncs_broker {:d} &> $experimentPath/$logFile &\n'.format(int(len(list(populationDict.keys())))+1+len(aggregatorList)))
 			runFile.write('export FNCS_BROKER=$fncsBrokerIP\n')
 
 
@@ -795,19 +797,19 @@ def createConvenienceScripts(populationDict, experimentResources, matpowerFilePa
 	else:
 		# create the run all script. This script will run the experiment. We have more than one resource available and we will now have to not only run the experiment but also distribute it amoung the machines
 		# let's order the dictionary such that the main node is always first!
-		experimentResources = collections.OrderedDict(sorted(experimentResources.items(), key=lambda t: t[1][0], reverse=True))
+		experimentResources = collections.OrderedDict(sorted(list(experimentResources.items()), key=lambda t: t[1][0], reverse=True))
 
 		runFile.write('#!/bin/bash\n\n')
 
 		runFile.write('clear\n')
-		runFile.write('echo "Running on a total of {:d} compute resources"\n'.format(len(experimentResources.keys())))
+		runFile.write('echo "Running on a total of {:d} compute resources"\n'.format(len(list(experimentResources.keys()))))
 		runFile.write('echo "Distributing experiment to available resources..."\n\n')
 
 		# since we have to run on more than one machine we will take the experiment folder and divide it into equal parts. One for each resource!
 		# but first we need to obtain a list of all the feeders we have so we can decide a fair distribution
 		feederFolderNames = [name for name in os.listdir(experimentFilePath + '/' + experimentName) if os.path.isdir(experimentFilePath + '/' + experimentName + '/' + name) and 'feeder' in name]
 		numberOfFeeders = len(feederFolderNames)
-		numberOfResources = len(experimentResources.keys())
+		numberOfResources = len(list(experimentResources.keys()))
 
 		if numberOfResources > numberOfFeeders:
 			raise Exception("we have more resources that we have distribution systems. Not able to proceed")
@@ -867,7 +869,7 @@ def createConvenienceScripts(populationDict, experimentResources, matpowerFilePa
 			runFilePart.write('matpowerLogLevel="{:s}"\n'.format(matpowerLogLevel))
 			runFilePart.write('aggregatorLogLevel="{:s}"\n'.format(matpowerLogLevel))
 			runFilePart.write('fncsBrokerPort="tcp://*:{:s}"\n'.format(fncsPort))
-			runFilePart.write('fncsBrokerIP="tcp://{:s}:{:s}"\n\n'.format(experimentResources.keys()[0], fncsPort))
+			runFilePart.write('fncsBrokerIP="tcp://{:s}:{:s}"\n\n'.format(list(experimentResources.keys())[0], fncsPort))
 
 			# Do the exports so FNCS and other software behave the way we want
 			runFilePart.write('export FNCS_LOG_STDOUT=yes\n')
@@ -886,7 +888,7 @@ def createConvenienceScripts(populationDict, experimentResources, matpowerFilePa
 
 				if useFlags['useFNCS'] == 1:
 					runFilePart.write('export FNCS_BROKER=$fncsBrokerPort\n')
-					runFilePart.write('cd {:s}/bin && exec ./fncs_broker {:d} &> {:s}/$logFile &\n'.format(experimentResources[resourceName][3], int(len(populationDict.keys())) + 1 + len(aggregatorList), experimentFilePath + '/' + experimentName))
+					runFilePart.write('cd {:s}/bin && exec ./fncs_broker {:d} &> {:s}/$logFile &\n'.format(experimentResources[resourceName][3], int(len(list(populationDict.keys()))) + 1 + len(aggregatorList), experimentFilePath + '/' + experimentName))
 					runFilePart.write('export FNCS_BROKER=$fncsBrokerIP\n\n')
 
 				runFilePart.write('cd {:s}/part_{:d}_of_{:d}/matpower && exec ./start_MATPOWER {:s}.m real_power_demand.txt reactive_power_demand.txt {:d} {:d} "{:s}" load_data.txt dispatchable_load_data.txt generator_data.txt &> $logFile &\n'.format(experimentFilePath + '/' + experimentName, resource + 1, numberOfResources, matpowerSystem, int(matpowerFullTime), int(matpowerOPFTime), feederConfig['startdate']))

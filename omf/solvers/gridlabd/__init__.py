@@ -1,6 +1,12 @@
 ''' Code for running Gridlab and getting results into pythonic data structures. '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import map
+from builtins import range
+from past.utils import old_div
 import sys, os, subprocess, platform, re, datetime, shutil, traceback, math, time, tempfile, json
 from os.path import join as pJoin
 from copy import deepcopy
@@ -34,11 +40,11 @@ def checkStatus(modelDir):
 			difference = (endDate - gridlabDTimeFormatted)
 			print("\n   difference=", difference)
 			if simLengthUnits == 'hours':
-				floatPercentageStatus = -1*(difference.total_seconds()/3600)/(float(simLength)) + 1.0
+				floatPercentageStatus = -1*(old_div(difference.total_seconds(),3600))/(float(simLength)) + 1.0
 			elif simLengthUnits == 'days':
-				floatPercentageStatus = -1*(difference.total_seconds()/86400)/(float(simLength)) + 1.0
+				floatPercentageStatus = -1*(old_div(difference.total_seconds(),86400))/(float(simLength)) + 1.0
 			elif simLengthUnits == 'minutes':
-				floatPercentageStatus = -1*(difference.total_seconds()/60)/(float(simLength)) + 1.0
+				floatPercentageStatus = -1*(old_div(difference.total_seconds(),60))/(float(simLength)) + 1.0
 		except:
 			print("\n   No std error file, passing.")
 			floatPercentageStatus = 0.0
@@ -132,7 +138,7 @@ def runInFilesystem(feederTree, attachments=[], keepFiles=False, workDir=None, g
 			print("gridlabD runInFilesystem with no specified workDir. Working in", workDir)
 		# Need to zero out lat/lon data on copy because it frequently breaks Gridlab.
 		localTree = deepcopy(feederTree)
-		for key in localTree.keys():
+		for key in list(localTree.keys()):
 			try:
 				del localTree[key]["latitude"]
 				del localTree[key]["longitude"]
@@ -190,8 +196,8 @@ def _strClean(x):
 		if len(matches)==0:
 			return 0.0
 		else:
-			floatConv = map(float, matches[0])
-			squares = map(lambda x:x**2, floatConv)
+			floatConv = list(map(float, matches[0]))
+			squares = [x**2 for x in floatConv]
 			return math.sqrt(sum(squares))
 	elif re.findall('^([+-]?\d+\.?\d*e?[+-]?\d*)$',x) != []:
 		matches = re.findall('([+-]?\d+\.?\d*e?[+-]?\d*)',x)
@@ -208,8 +214,8 @@ def csvToArray(fileName):
 	with open(fileName) as openfile:
 		data = openfile.read()
 	lines = data.splitlines()
-	array = map(lambda x:x.split(','), lines)
-	cleanArray = [map(_strClean, x) for x in array]
+	array = [x.split(',') for x in lines]
+	cleanArray = [list(map(_strClean, x)) for x in array]
 	# Magic number 8 is the number of header rows in each GridlabD csv.
 	arrayNoHeaders = cleanArray[8:]
 	# Drop the timestamp column:

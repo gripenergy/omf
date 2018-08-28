@@ -1,8 +1,14 @@
 ''' Convert a Milsoft Windmil feeder model into an OMF-compatible version. '''
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import os, feeder, csv, random, math, copy, locale, json, traceback, shutil
-from StringIO import StringIO
+from io import StringIO
 from os.path import join as pJoin
 from .solvers import gridlabd
 from matplotlib import pyplot as plt
@@ -39,9 +45,9 @@ def convert(stdString,seqString):
 				x_list.append(float(component[5]))
 				y_list.append(float(component[6]))
 			# according to convert function  f(x) = a * x + b
-			x_a = x_pixel_range / (max(x_list) - min(x_list))
+			x_a = old_div(x_pixel_range, (max(x_list) - min(x_list)))
 			x_b = -x_a * min(x_list)
-			y_a = y_pixel_range / (max(y_list) - min(y_list))
+			y_a = old_div(y_pixel_range, (max(y_list) - min(y_list)))
 			y_b = -y_a * min(y_list)
 		except:
 			x_a,x_b,y_a,y_b = (0,0,0,0)
@@ -301,12 +307,12 @@ def convert(stdString,seqString):
 				Dcn = 5.0
 			else:
 				# Find the distances in feet between each conductor
-				Dab = math.sqrt(((float(construction_stats[19]) - float(construction_stats[20]))*(float(construction_stats[19]) - float(construction_stats[20]))) + ((float(construction_stats[23]) - float(construction_stats[24]))*(float(construction_stats[23]) - float(construction_stats[24]))))/12
-				Dac = math.sqrt(((float(construction_stats[19]) - float(construction_stats[21]))*(float(construction_stats[19]) - float(construction_stats[21]))) + ((float(construction_stats[23]) - float(construction_stats[25]))*(float(construction_stats[23]) - float(construction_stats[25]))))/12
-				Dan = math.sqrt(((float(construction_stats[19]) - float(construction_stats[22]))*(float(construction_stats[19]) - float(construction_stats[22]))) + ((float(construction_stats[23]) - float(construction_stats[26]))*(float(construction_stats[23]) - float(construction_stats[26]))))/12
-				Dbc = math.sqrt(((float(construction_stats[20]) - float(construction_stats[21]))*(float(construction_stats[20]) - float(construction_stats[21]))) + ((float(construction_stats[24]) - float(construction_stats[25]))*(float(construction_stats[24]) - float(construction_stats[25]))))/12
-				Dbn = math.sqrt(((float(construction_stats[20]) - float(construction_stats[22]))*(float(construction_stats[20]) - float(construction_stats[22]))) + ((float(construction_stats[24]) - float(construction_stats[26]))*(float(construction_stats[24]) - float(construction_stats[26]))))/12
-				Dcn = math.sqrt(((float(construction_stats[21]) - float(construction_stats[22]))*(float(construction_stats[21]) - float(construction_stats[22]))) + ((float(construction_stats[25]) - float(construction_stats[26]))*(float(construction_stats[25]) - float(construction_stats[26]))))/12
+				Dab = old_div(math.sqrt(((float(construction_stats[19]) - float(construction_stats[20]))*(float(construction_stats[19]) - float(construction_stats[20]))) + ((float(construction_stats[23]) - float(construction_stats[24]))*(float(construction_stats[23]) - float(construction_stats[24])))),12)
+				Dac = old_div(math.sqrt(((float(construction_stats[19]) - float(construction_stats[21]))*(float(construction_stats[19]) - float(construction_stats[21]))) + ((float(construction_stats[23]) - float(construction_stats[25]))*(float(construction_stats[23]) - float(construction_stats[25])))),12)
+				Dan = old_div(math.sqrt(((float(construction_stats[19]) - float(construction_stats[22]))*(float(construction_stats[19]) - float(construction_stats[22]))) + ((float(construction_stats[23]) - float(construction_stats[26]))*(float(construction_stats[23]) - float(construction_stats[26])))),12)
+				Dbc = old_div(math.sqrt(((float(construction_stats[20]) - float(construction_stats[21]))*(float(construction_stats[20]) - float(construction_stats[21]))) + ((float(construction_stats[24]) - float(construction_stats[25]))*(float(construction_stats[24]) - float(construction_stats[25])))),12)
+				Dbn = old_div(math.sqrt(((float(construction_stats[20]) - float(construction_stats[22]))*(float(construction_stats[20]) - float(construction_stats[22]))) + ((float(construction_stats[24]) - float(construction_stats[26]))*(float(construction_stats[24]) - float(construction_stats[26])))),12)
+				Dcn = old_div(math.sqrt(((float(construction_stats[21]) - float(construction_stats[22]))*(float(construction_stats[21]) - float(construction_stats[22]))) + ((float(construction_stats[25]) - float(construction_stats[26]))*(float(construction_stats[25]) - float(construction_stats[26])))),12)
 			# Add distances to dictionary when appropriate
 			if 'A' in overhead['phases'] and 'B' in overhead['phases']:
 				if Dab > 0:
@@ -421,12 +427,12 @@ def convert(stdString,seqString):
 				Dcn = 5.0
 			else:
 				# Find the distances in feet between each conductor
-				Dab = math.sqrt(((float(construction_stats[19]) - float(construction_stats[20]))*(float(construction_stats[19]) - float(construction_stats[20]))) + ((float(construction_stats[23]) - float(construction_stats[24]))*(float(construction_stats[23]) - float(construction_stats[24]))))/12
-				Dac = math.sqrt(((float(construction_stats[19]) - float(construction_stats[21]))*(float(construction_stats[19]) - float(construction_stats[21]))) + ((float(construction_stats[23]) - float(construction_stats[25]))*(float(construction_stats[23]) - float(construction_stats[25]))))/12
-				Dan = math.sqrt(((float(construction_stats[19]) - float(construction_stats[22]))*(float(construction_stats[19]) - float(construction_stats[22]))) + ((float(construction_stats[23]) - float(construction_stats[26]))*(float(construction_stats[23]) - float(construction_stats[26]))))/12
-				Dbc = math.sqrt(((float(construction_stats[20]) - float(construction_stats[21]))*(float(construction_stats[20]) - float(construction_stats[21]))) + ((float(construction_stats[24]) - float(construction_stats[25]))*(float(construction_stats[24]) - float(construction_stats[25]))))/12
-				Dbn = math.sqrt(((float(construction_stats[20]) - float(construction_stats[22]))*(float(construction_stats[20]) - float(construction_stats[22]))) + ((float(construction_stats[24]) - float(construction_stats[26]))*(float(construction_stats[24]) - float(construction_stats[26]))))/12
-				Dcn = math.sqrt(((float(construction_stats[21]) - float(construction_stats[22]))*(float(construction_stats[21]) - float(construction_stats[22]))) + ((float(construction_stats[25]) - float(construction_stats[26]))*(float(construction_stats[25]) - float(construction_stats[26]))))/12
+				Dab = old_div(math.sqrt(((float(construction_stats[19]) - float(construction_stats[20]))*(float(construction_stats[19]) - float(construction_stats[20]))) + ((float(construction_stats[23]) - float(construction_stats[24]))*(float(construction_stats[23]) - float(construction_stats[24])))),12)
+				Dac = old_div(math.sqrt(((float(construction_stats[19]) - float(construction_stats[21]))*(float(construction_stats[19]) - float(construction_stats[21]))) + ((float(construction_stats[23]) - float(construction_stats[25]))*(float(construction_stats[23]) - float(construction_stats[25])))),12)
+				Dan = old_div(math.sqrt(((float(construction_stats[19]) - float(construction_stats[22]))*(float(construction_stats[19]) - float(construction_stats[22]))) + ((float(construction_stats[23]) - float(construction_stats[26]))*(float(construction_stats[23]) - float(construction_stats[26])))),12)
+				Dbc = old_div(math.sqrt(((float(construction_stats[20]) - float(construction_stats[21]))*(float(construction_stats[20]) - float(construction_stats[21]))) + ((float(construction_stats[24]) - float(construction_stats[25]))*(float(construction_stats[24]) - float(construction_stats[25])))),12)
+				Dbn = old_div(math.sqrt(((float(construction_stats[20]) - float(construction_stats[22]))*(float(construction_stats[20]) - float(construction_stats[22]))) + ((float(construction_stats[24]) - float(construction_stats[26]))*(float(construction_stats[24]) - float(construction_stats[26])))),12)
+				Dcn = old_div(math.sqrt(((float(construction_stats[21]) - float(construction_stats[22]))*(float(construction_stats[21]) - float(construction_stats[22]))) + ((float(construction_stats[25]) - float(construction_stats[26]))*(float(construction_stats[25]) - float(construction_stats[26])))),12)
 			# Add distances to dictionary when appropriate
 			if 'A' in underground['phases'] and 'B' in underground['phases']:
 				underground[myIndex+1][myIndex+2]['distance_AB'] = '{:0.6f}'.format(Dab)
@@ -539,8 +545,8 @@ def convert(stdString,seqString):
 			if reg_hardware is not None:
 				band_width = str(float(reg_hardware[7])*120)
 				if float(reg_hardware[6]) > 0.0:
-					raise_taps = str(math.ceil(float(reg_hardware[4])/float(reg_hardware[6])))
-					lower_taps = str(math.ceil(float(reg_hardware[5])/float(reg_hardware[6])))
+					raise_taps = str(math.ceil(old_div(float(reg_hardware[4]),float(reg_hardware[6]))))
+					lower_taps = str(math.ceil(old_div(float(reg_hardware[5]),float(reg_hardware[6]))))
 				else:
 					raise_taps = '16'
 					lower_taps = '16'
@@ -746,14 +752,14 @@ def convert(stdString,seqString):
 		parentable = ['capacitor','ZIPload','diesel_dg','load']
 
 		def getByGuid(guid):
-			candidates = [x for x in convertedComponents if 'guid' in x.keys() and x['guid'] == guid]
+			candidates = [x for x in convertedComponents if 'guid' in list(x.keys()) and x['guid'] == guid]
 			if len(candidates) == 0:
 				return {}
 			else:
 				return candidates[0]
 
 		def getByName(name):
-			candidates = [x for x in convertedComponents if 'name' in x.keys() and x['name'] == name]
+			candidates = [x for x in convertedComponents if 'name' in list(x.keys()) and x['name'] == name]
 			if len(candidates) == 0:
 				return {}
 			else:
@@ -762,7 +768,7 @@ def convert(stdString,seqString):
 		def parentType(ob):
 			thing = getByGuid(ob['guid'])
 			parent = getByGuid(thing['parentGuid'])
-			if 'object' in parent.keys():
+			if 'object' in list(parent.keys()):
 				return parent['object']
 			else:
 				pass # print parent
@@ -772,7 +778,7 @@ def convert(stdString,seqString):
 			return ''.join(sorted(set(concated)))
 
 		# If we already stripped the GUID, don't process:
-		if 'guid' not in comp.keys():
+		if 'guid' not in list(comp.keys()):
 			return False
 
 		# Hang on to the component's parent:
@@ -784,7 +790,7 @@ def convert(stdString,seqString):
 		elif comp['object'] in fromToable and parentType(comp) in nodable:
 			comp['from'] = parent['name']
 		elif comp['object'] in parentable and parentType(comp) in fromToable:
-			if 'to' in parent.keys():
+			if 'to' in list(parent.keys()):
 				comp['parent'] = parent['to']
 				# Making sure our nodes have the superset of connected phases:
 				interNode = getByName(parent['to'])
@@ -801,7 +807,7 @@ def convert(stdString,seqString):
 				parent['to'] = newNode['name']
 				comp['parent'] = newNode['name']
 		elif comp['object'] in fromToable and parentType(comp) in fromToable:
-			if 'to' in parent.keys():
+			if 'to' in list(parent.keys()):
 				comp['from'] = parent['to']
 				# Making sure our nodes have the superset of connected phases:
 				interNode = getByName(parent['to'])
@@ -832,9 +838,9 @@ def convert(stdString,seqString):
 	glmTree = {(1+convertedComponents.index(x))*subObCount:x for x in convertedComponents}
 
 	#MAYBEFIX: REMOVE THIS DISASTER HERE AND FIGURE OUT WHY SOME LINKS ARE MALFORMED
-	for key in glmTree.keys():
+	for key in list(glmTree.keys()):
 		# if ('from' in glmTree[key].keys() and 'to' not in glmTree[key].keys()) or ('to' in glmTree[key].keys() and 'from' not in glmTree[key].keys()):
-		if glmTree[key]['object'] in ['overhead_line','underground_line','regulator','transformer','switch','fuse'] and ('to' not in glmTree[key].keys() or 'from' not in glmTree[key].keys()):
+		if glmTree[key]['object'] in ['overhead_line','underground_line','regulator','transformer','switch','fuse'] and ('to' not in list(glmTree[key].keys()) or 'from' not in list(glmTree[key].keys())):
 			# print [glmTree[key]['name'], glmTree[key]['object']]
 			del glmTree[key]
 
@@ -860,10 +866,10 @@ def convert(stdString,seqString):
 			comp['phases'] = phaseMin(fromPhases, toPhases)
 			if 'N' in comp['phases'] and (comp['object'] == 'overhead_line' or comp['object'] == 'underground_line'):
 				key = 0
-				for y in comp.keys():
+				for y in list(comp.keys()):
 					if type(y) is int:
 						key = y+5
-						if key in comp[y].keys():# line_configuration has a neutral conductor
+						if key in list(comp[y].keys()):# line_configuration has a neutral conductor
 							pass
 						else:
 							comp['phases'] = comp['phases'].replace('N','')
@@ -886,7 +892,7 @@ def convert(stdString,seqString):
 			node12 = None
 			load1 = None
 			load2 = None
-			for x in glm_dict.keys():
+			for x in list(glm_dict.keys()):
 				try:
 					if 'name' in glm_dict[x] and glm_dict[x].get('name','') == glm_dict[y].get('from',''):
 						node12 = copy.deepcopy(glm_dict[x])
@@ -914,21 +920,21 @@ def convert(stdString,seqString):
 				# split the load by 2/3 and 1/3
 				if 'distributed_load_A' in glm_dict[y]:
 					load1['constant_power_A'] = str(glm_dict[y]['distributed_load_A'].real*2/3) + ('+' if glm_dict[y]['distributed_load_A'].imag >= 0.0 else '-') + str(abs(glm_dict[y]['distributed_load_A'].imag*2/3)) + 'j'
-					load2['constant_power_A'] = str(glm_dict[y]['distributed_load_A'].real/3) + ('+' if glm_dict[y]['distributed_load_A'].imag >= 0.0 else '-') + str(abs(glm_dict[y]['distributed_load_A'].imag/3)) + 'j'
+					load2['constant_power_A'] = str(old_div(glm_dict[y]['distributed_load_A'].real,3)) + ('+' if glm_dict[y]['distributed_load_A'].imag >= 0.0 else '-') + str(abs(old_div(glm_dict[y]['distributed_load_A'].imag,3))) + 'j'
 					del glm_dict[y]['distributed_load_A']
 				if 'distributed_load_B' in glm_dict[y]:
 					load1['constant_power_B'] = str(glm_dict[y]['distributed_load_B'].real*2/3) + ('+' if glm_dict[y]['distributed_load_B'].imag >= 0.0 else '-') + str(abs(glm_dict[y]['distributed_load_B'].imag*2/3)) + 'j'
-					load2['constant_power_B'] = str(glm_dict[y]['distributed_load_B'].real/3) + ('+' if glm_dict[y]['distributed_load_B'].imag >= 0.0 else '-') + str(abs(glm_dict[y]['distributed_load_B'].imag/3)) + 'j'
+					load2['constant_power_B'] = str(old_div(glm_dict[y]['distributed_load_B'].real,3)) + ('+' if glm_dict[y]['distributed_load_B'].imag >= 0.0 else '-') + str(abs(old_div(glm_dict[y]['distributed_load_B'].imag,3))) + 'j'
 					del glm_dict[y]['distributed_load_B']
 				if 'distributed_load_C' in glm_dict[y]:
 					load1['constant_power_C'] = str(glm_dict[y]['distributed_load_C'].real*2/3) + ('+' if glm_dict[y]['distributed_load_C'].imag >= 0.0 else '-') + str(abs(glm_dict[y]['distributed_load_C'].imag*2/3)) + 'j'
-					load2['constant_power_C'] = str(glm_dict[y]['distributed_load_C'].real/3) + ('+' if glm_dict[y]['distributed_load_C'].imag >= 0.0 else '-') + str(abs(glm_dict[y]['distributed_load_C'].imag/3)) + 'j'
+					load2['constant_power_C'] = str(old_div(glm_dict[y]['distributed_load_C'].real,3)) + ('+' if glm_dict[y]['distributed_load_C'].imag >= 0.0 else '-') + str(abs(old_div(glm_dict[y]['distributed_load_C'].imag,3))) + 'j'
 					del glm_dict[y]['distributed_load_C']
 				#Split line into two line segments, 1/4 long and 3/4 long
 				line_segment1 = copy.deepcopy(glm_dict[y])
 				line_segment2 = copy.deepcopy(glm_dict[y])
 				line_segment1['name'] = glm_dict[y]['name'] + '_LINESEG1'
-				line_segment1['length'] = str(float(glm_dict[y]['length'])/4)
+				line_segment1['length'] = str(old_div(float(glm_dict[y]['length']),4))
 				try:
 					line_segment1['to'] = node12['name']
 				except:
@@ -937,10 +943,10 @@ def convert(stdString,seqString):
 				line_segment2['length'] = str(float(glm_dict[y]['length'])*3/4)
 				line_segment2['from'] = node12['name']
 				#Rename all embedded objects
-				for a in line_segment1.keys():
+				for a in list(line_segment1.keys()):
 					if type(line_segment1[a]) is dict:
 						line_segment1[a]['name'] = line_segment1['name'] + '-LINECONFIG'
-						for b in line_segment1[a].keys():
+						for b in list(line_segment1[a].keys()):
 							if type(line_segment1[a][b]) is dict and 'omfEmbeddedConfigObject' in line_segment1[a][b] and line_segment1[a][b]['omfEmbeddedConfigObject'] == 'spacing object line_spacing':
 								line_segment1[a][b]['name'] = line_segment1['name'] + '-LINESPACING'
 							elif type(line_segment1[a][b]) is dict and 'omfEmbeddedConfigObject' in line_segment1[a][b] and 'conductor_A' in line_segment1[a][b]['omfEmbeddedConfigObject']:
@@ -951,10 +957,10 @@ def convert(stdString,seqString):
 								line_segment1[a][b]['name'] = line_segment1['name'] + '-CONDUCTOR_C'
 							elif type(line_segment1[a][b]) is dict and 'omfEmbeddedConfigObject' in line_segment1[a][b] and 'conductor_N' in line_segment1[a][b]['omfEmbeddedConfigObject']:
 								line_segment1[a][b]['name'] = line_segment1['name'] + '-CONDUCTOR_N'
-				for a in line_segment2.keys():
+				for a in list(line_segment2.keys()):
 					if type(line_segment2[a]) is dict:
 						line_segment2[a]['name'] = line_segment2['name'] + '-LINECONFIG'
-						for b in line_segment2[a].keys():
+						for b in list(line_segment2[a].keys()):
 							if type(line_segment2[a][b]) is dict and 'omfEmbeddedConfigObject' in line_segment2[a][b] and line_segment2[a][b]['omfEmbeddedConfigObject'] == 'spacing object line_spacing':
 								line_segment2[a][b]['name'] = line_segment2['name'] + '-LINESPACING'
 							elif type(line_segment2[a][b]) is dict and 'omfEmbeddedConfigObject' in line_segment2[a][b] and 'conductor_A' in line_segment2[a][b]['omfEmbeddedConfigObject']:
@@ -981,10 +987,10 @@ def convert(stdString,seqString):
 	# Fix nominal voltage
 	def fix_nominal_voltage(glm_dict, volt_dict):
 		for x in glm_dict:
-			if 'parent' in glm_dict[x].keys() and glm_dict[x]['parent'] in volt_dict.keys() and glm_dict[x]['name'] not in volt_dict.keys():
+			if 'parent' in list(glm_dict[x].keys()) and glm_dict[x]['parent'] in list(volt_dict.keys()) and glm_dict[x]['name'] not in list(volt_dict.keys()):
 				glm_dict[x]['nominal_voltage'] = volt_dict[glm_dict[x]['parent']]
 				volt_dict[glm_dict[x]['name']] = glm_dict[x]['nominal_voltage']
-			elif 'from' in glm_dict[x].keys() and glm_dict[x]['from'] in volt_dict.keys() and glm_dict[x]['name'] not in volt_dict.keys():
+			elif 'from' in list(glm_dict[x].keys()) and glm_dict[x]['from'] in list(volt_dict.keys()) and glm_dict[x]['name'] not in list(volt_dict.keys()):
 				if glm_dict[x]['object'] == 'transformer':
 					for y in glm_dict[x]:
 						if type(y) is int:
@@ -1001,15 +1007,15 @@ def convert(stdString,seqString):
 						volt_dict[glm_dict[y]['name']] = glm_dict[y]['nominal_voltage']
 			# Regulator_Configuration set to Swing
 			try:
-				if 'SWING' in glm_dict[x].values():
+				if 'SWING' in list(glm_dict[x].values()):
 					nominalVoltageSwing = float(glm_dict[x]['nominal_voltage'])
-				if 'regulator' in glm_dict[x].values():
-					for key, value in glm_dict[x].iteritems():
+				if 'regulator' in list(glm_dict[x].values()):
+					for key, value in glm_dict[x].items():
 						if 'band_center' in glm_dict[x][key]:
 							bandWidthRegulator = float(glm_dict[x][key]['band_width'])
 							if (glm_dict[x][key]['band_center'] != nominalVoltageSwing):
 								glm_dict[x][key]['band_center'] = nominalVoltageSwing
-								glm_dict[x][key]['band_width'] =  (bandWidthRegulator * nominalVoltageSwing) / 120
+								glm_dict[x][key]['band_width'] =  old_div((bandWidthRegulator * nominalVoltageSwing), 120)
 			except:
 				print("\n   Couldn't set regulator_configuration to the swing bus nominal_voltage.")
 
@@ -1028,21 +1034,21 @@ def convert(stdString,seqString):
 		current_parents = len(parent_voltage)
 
 	# figure out the PT rating for regulators
-	for x in glmTree.keys():
-		if 'object' in glmTree[x].keys() and glmTree[x]['object'] == 'regulator':
-			for y in glmTree[x].keys():
+	for x in list(glmTree.keys()):
+		if 'object' in list(glmTree[x].keys()) and glmTree[x]['object'] == 'regulator':
+			for y in list(glmTree[x].keys()):
 				if type(glmTree[x][y]) is dict:
-					glmTree[x][y]['power_transducer_ratio'] = str(float(glmTree[x].get('nominal_voltage', 14400))/120)
+					glmTree[x][y]['power_transducer_ratio'] = str(old_div(float(glmTree[x].get('nominal_voltage', 14400)),120))
 
 	# Delete nominal_voltage from link objects
 	del_nom_volt_list = ['overhead_line', 'underground_line', 'regulator', 'transformer', 'switch', 'fuse', 'ZIPload', 'diesel_dg']
 	for x in glmTree:
-		if 'object' in glmTree[x].keys() and glmTree[x]['object'] in del_nom_volt_list and 'nominal_voltage' in glmTree[x].keys():
+		if 'object' in list(glmTree[x].keys()) and glmTree[x]['object'] in del_nom_volt_list and 'nominal_voltage' in list(glmTree[x].keys()):
 			del glmTree[x]['nominal_voltage']
 
 	def secondarySystemFix(glm):
 		def unused_key(dic, key_multiplier):
-			free_key = (int(max(dic.keys())/key_multiplier) + 1)*key_multiplier
+			free_key = (int(old_div(max(dic.keys()),key_multiplier)) + 1)*key_multiplier
 			return free_key
 		allLoadKeys = [x for x in glm if 'object' in glm[x] and 'parent' in glm[x] and glm[x]['object']=='load' and 'load_class' in glm[x] and glm[x]['load_class'] == 'R']
 		allNamesNodesOnLoads = list(set([glm[key]['parent'] for key in allLoadKeys]))
@@ -1157,14 +1163,14 @@ def convert(stdString,seqString):
 			return newX==newY
 		def dupToTup(inList):
 			# Go through a list of components, and given two identicals (up to name) in a row, replace the first one with (name1, name2).
-			for i in xrange(0,len(inList)-1):
+			for i in range(0,len(inList)-1):
 				if isSameMinusName(inList[i], inList[i+1]):
 					inList[i] = (inList[i]['name'], inList[i+1]['name'])
 				else:
 					pass
 		def dechain(tupleList):
 			# Go backwards through a list of tuples and change e.g. (1,2),(2,3),(3,4) into (1,4),(2,4),(3,4).
-			for i in xrange(len(tupleList)-1,0,-1):
+			for i in range(len(tupleList)-1,0,-1):
 				if tupleList[i][0] == tupleList[i-1][1]:
 					tupleList[i-1] = (tupleList[i-1][0], tupleList[i][1])
 				else:
@@ -1192,40 +1198,40 @@ def convert(stdString,seqString):
 		nameDictMap = {x[0]:x[1] for x in nameMaps}
 
 		# Killing duplicate objects
-		iterKeys = glmRef.keys()
+		iterKeys = list(glmRef.keys())
 		for x in iterKeys:
-			if 'name' in glmRef[x] and glmRef[x]['name'] in nameDictMap.keys():
+			if 'name' in glmRef[x] and glmRef[x]['name'] in list(nameDictMap.keys()):
 				del glmRef[x]
 
 		# Rewiring all objects
-		iterKeys = glmRef.keys()
+		iterKeys = list(glmRef.keys())
 		if compName == 'transformer_configuration':
 			transformers = [glmRef[x] for x in glmRef if 'object' in glmRef[x] and glmRef[x]['object'] == 'transformer']
 			for tranny in transformers:
-				if tranny['configuration'] in nameDictMap.keys(): tranny['configuration'] = nameDictMap[tranny['configuration']]
+				if tranny['configuration'] in list(nameDictMap.keys()): tranny['configuration'] = nameDictMap[tranny['configuration']]
 		elif compName == 'regulator_configuration':
 			regulators = [glmRef[x] for x in glmRef if 'object' in glmRef[x] and glmRef[x]['object'] == 'regulator']
 			for reggy in regulators:
-				if reggy['configuration'] in nameDictMap.keys(): reggy['configuration'] = nameDictMap[reggy['configuration']]
+				if reggy['configuration'] in list(nameDictMap.keys()): reggy['configuration'] = nameDictMap[reggy['configuration']]
 		elif compName == 'line_spacing':
 			lineConfigs = [glmRef[x] for x in glmRef if 'object' in glmRef[x] and glmRef[x]['object'] == 'line_configuration']
 			for config in lineConfigs:
-				if config['spacing'] in nameDictMap.keys(): config['spacing'] = nameDictMap[config['spacing']]
+				if config['spacing'] in list(nameDictMap.keys()): config['spacing'] = nameDictMap[config['spacing']]
 		elif compName == 'overhead_line_conductor' or compName == 'underground_line_conductor':
 			lineConfigs = [glmRef[x] for x in glmRef if 'object' in glmRef[x] and glmRef[x]['object'] == 'line_configuration']
 			for config in lineConfigs:
-				if 'conductor_A' in config.keys():
-					if config['conductor_A'] in nameDictMap.keys(): config['conductor_A'] = nameDictMap[config['conductor_A']]
-				if 'conductor_B' in config.keys():
-					if config['conductor_B'] in nameDictMap.keys(): config['conductor_B'] = nameDictMap[config['conductor_B']]
-				if 'conductor_C' in config.keys():
-					if config['conductor_C'] in nameDictMap.keys(): config['conductor_C'] = nameDictMap[config['conductor_C']]
-				if 'conductor_N' in config.keys():
-					if config['conductor_N'] in nameDictMap.keys(): config['conductor_N'] = nameDictMap[config['conductor_N']]
+				if 'conductor_A' in list(config.keys()):
+					if config['conductor_A'] in list(nameDictMap.keys()): config['conductor_A'] = nameDictMap[config['conductor_A']]
+				if 'conductor_B' in list(config.keys()):
+					if config['conductor_B'] in list(nameDictMap.keys()): config['conductor_B'] = nameDictMap[config['conductor_B']]
+				if 'conductor_C' in list(config.keys()):
+					if config['conductor_C'] in list(nameDictMap.keys()): config['conductor_C'] = nameDictMap[config['conductor_C']]
+				if 'conductor_N' in list(config.keys()):
+					if config['conductor_N'] in list(nameDictMap.keys()): config['conductor_N'] = nameDictMap[config['conductor_N']]
 		elif compName == 'line_configuration':
 			lines = [glmRef[x] for x in glmRef if 'object' in glmRef[x] and glmRef[x]['object'] in ['overhead_line','underground_line']]
 			for line in lines:
-				if line['configuration'] in nameDictMap.keys(): line['configuration'] = nameDictMap[line['configuration']]
+				if line['configuration'] in list(nameDictMap.keys()): line['configuration'] = nameDictMap[line['configuration']]
 
 	# Fully disembed and remove duplicate configuration objects:
 	feeder.fullyDeEmbed(glmTree)
@@ -1250,7 +1256,7 @@ def convert(stdString,seqString):
 		{"omftype": "module", "argument": "climate"},
 		{"object":"climate", "name":"Climate", "interpolate": "QUADRATIC", "tmyfile": "climate.tmy2"}
 	]
-	for headId in xrange(len(genericHeaders)):
+	for headId in range(len(genericHeaders)):
 		glmTree[headId] = genericHeaders[headId]
 
 	# Go through and put lat/lons on meters and loads.

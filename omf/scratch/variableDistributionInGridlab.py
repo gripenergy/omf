@@ -4,6 +4,8 @@
 from __future__ import print_function
 
 
+from builtins import str
+from builtins import map
 def doCalc():
 	bigDict = {}
 
@@ -21,7 +23,7 @@ def doCalc():
 
 	print('{')
 	for key in bigDict:
-		fixedArray = map(float,bigDict[key])
+		fixedArray = list(map(float,bigDict[key]))
 		print('"' + key + '":' + str(fixedArray) + ',')
 	print('}')
 

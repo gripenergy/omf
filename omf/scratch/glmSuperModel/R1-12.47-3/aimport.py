@@ -66,7 +66,7 @@ for k in baseFeed:
 omf.feeder.fullyDeEmbed(baseFeed)
 
 # Remove all asserts.
-for key in baseFeed.keys():
+for key in list(baseFeed.keys()):
 	if baseFeed[key].get('object','') == 'complex_assert':
 		del baseFeed[key]
 
@@ -86,7 +86,7 @@ with open('superModelTinyZeroTech.json','w+') as outFile:
 # Attach a prosumer.
 superConsumer = omf.feeder.parse('./prosumer.glm')
 maxKey = omf.feeder.getMaxKey(baseFeed) + 1
-meterKey = min([x for x in superConsumer.keys() if superConsumer[x].get('object','')=='triplex_meter'])
+meterKey = min([x for x in list(superConsumer.keys()) if superConsumer[x].get('object','')=='triplex_meter'])
 superConsumer[meterKey]['parent'] = 'R1-12-47-3_tn_1' # Meter attaching to a triplex_node.
 for key in superConsumer:
 	baseFeed[maxKey+key] = dict(superConsumer[key])

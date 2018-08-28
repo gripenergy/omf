@@ -1,6 +1,11 @@
 ''' Anomaly Detection Model '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
 from jinja2 import Template
@@ -47,7 +52,7 @@ def run(modelDir, inputDict):
 		startTime = datetime.datetime.now()
 		# Inputs.
 		MinDetRunTime = int(inputDict.get('MinDetectionRunTime',4))
-		devFromAve = 1-float(inputDict.get('MinDeviationFromAverage', 95))/100
+		devFromAve = 1-old_div(float(inputDict.get('MinDeviationFromAverage', 95)),100)
 		workDir = os.getcwd()
 		# Run.
 		outData = {}
@@ -167,7 +172,7 @@ def computeAMIResults(inCSV, devFromAve,  MinDetRunTime, outData):
 				meter = output[index][0]
 				time1 = datetime.datetime.strptime(output[index][1], "%Y-%m-%dT%H:%M:%S")
 				time2 = datetime.datetime.strptime(output[endPoint][1], "%Y-%m-%dT%H:%M:%S")
-				duration = round(abs((time2-time1)).total_seconds()/3600,2)
+				duration = round(old_div(abs((time2-time1)).total_seconds(),3600),2)
 				dev = [(a-b)*100/b if b else 0 for a,b in zip(devValues,average)] #zero division is handeled by setting the dev=0
 				if np.mean(dev) == 0:
 					deviation = "Zero Demand"

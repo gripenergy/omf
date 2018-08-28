@@ -1,4 +1,6 @@
 from __future__ import print_function
+from builtins import str
+from builtins import range
 import omf
 import os
 from os.path import join as pJoin
@@ -39,7 +41,7 @@ def distRandomizeLocations(inFeeder):
 def distRandomizeNames(inFeeder):
 	''' Replace all names in the inFeeder distribution system with a random ID number. '''
 	newNameKey = {}
-	allKeys = range(len(inFeeder['tree'].keys()))
+	allKeys = list(range(len(list(inFeeder['tree'].keys()))))
 	random.shuffle(allKeys)
 	#randomID = random.randint(0,100)
 	'''

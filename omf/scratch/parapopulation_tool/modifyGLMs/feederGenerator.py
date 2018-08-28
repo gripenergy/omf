@@ -197,11 +197,11 @@ def modifyFeeder(glmDict, config_data, use_flags, randomSeed=2):
 
 	# Copy static powerflow model glm dictionary into case dictionary
 	for x in glmDict:
-		if 'clock' not in glmDict[x].keys() and '#set' not in glmDict[x].keys() and '#define' not in glmDict[x].keys() and 'module' not in glmDict[x].keys() and 'omftype' not in glmDict[x].keys():
+		if 'clock' not in list(glmDict[x].keys()) and '#set' not in list(glmDict[x].keys()) and '#define' not in list(glmDict[x].keys()) and 'module' not in list(glmDict[x].keys()) and 'omftype' not in list(glmDict[x].keys()):
 			glmCaseDict[last_key] = copy.deepcopy(glmDict[x])
 			if use_flags["addSubstation"] == 1:
 				# Remove original swing bus from static model
-				if 'bustype' in glmCaseDict[last_key].keys() and glmCaseDict[last_key]['bustype'] == 'SWING':
+				if 'bustype' in list(glmCaseDict[last_key].keys()) and glmCaseDict[last_key]['bustype'] == 'SWING':
 					del glmCaseDict[last_key]['bustype']
 					glmCaseDict[last_key]['object'] = 'meter'
 			last_key += 1

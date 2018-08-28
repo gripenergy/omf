@@ -17,6 +17,7 @@ OOO Full model update and ship to production.
 '''
 from __future__ import print_function
 
+from builtins import str
 import omf, json, random
 
 # Read in the glm.
@@ -41,7 +42,7 @@ for k in baseFeed:
 omf.feeder.fullyDeEmbed(baseFeed)
 
 # Remove all asserts.
-for key in baseFeed.keys():
+for key in list(baseFeed.keys()):
 	if baseFeed[key].get('object','') == 'complex_assert':
 		del baseFeed[key]
 
@@ -141,7 +142,7 @@ with open('xOut_superModelRural.json','w+') as outFile:
 noTechFeed = dict(baseFeed)
 newTech = ['solar', 'battery', 'inverter', 'windturb_dg', 'evcharger_det',
 	'passive_controller', 'diesel_dg', 'capacitor']
-for k in noTechFeed.keys():
+for k in list(noTechFeed.keys()):
 	if noTechFeed[k].get('object','') in newTech:
 		del noTechFeed[k]
 fullNoTech = dict(omf.feeder.newFeederWireframe)

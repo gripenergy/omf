@@ -1,6 +1,10 @@
 ''' Calculate the costs and benefits of Time of Use (TOU) program from a distribution utility perspective. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback, csv, warnings, calendar, math, operator
 from os.path import join as pJoin
 from dateutil.parser import parse
@@ -18,8 +22,8 @@ def work(modelDir, inputDict):
 	outData = {}
 	# Get variables.
 	lifeSpan = int(inputDict.get('lifeSpan',25))
-	lifeYears = range(1, 1 + lifeSpan)
-	hours = range(0, 24)
+	lifeYears = list(range(1, 1 + lifeSpan))
+	hours = list(range(0, 24))
 	DrTechCost = float(inputDict.get('DrPurchInstallCost'))
 	demandCharge = float(inputDict.get('demandCharge'))
 	retailCost = float(inputDict.get('retailCost'))
@@ -27,9 +31,9 @@ def work(modelDir, inputDict):
 	SubElas = float(inputDict.get('SubstitutionPriceElasticity'))
 	DayElas = float(inputDict.get('DailyPriceElasticity'))
 	wholesaleCost = float(inputDict.get('WholesaleEnergyCost'))
-	ManagLoad = float(inputDict.get('LoadunderManagement')) / 100.0
-	DiscountRate = float(inputDict.get('DiscountRate')) / 100
-	ScalingAnnual = float(inputDict.get('ScalingAnnual'))/ 100
+	ManagLoad = old_div(float(inputDict.get('LoadunderManagement')), 100.0)
+	DiscountRate = old_div(float(inputDict.get('DiscountRate')), 100)
+	ScalingAnnual = old_div(float(inputDict.get('ScalingAnnual')), 100)
 	PeakRate = float(inputDict.get('PeakRate'))
 	OffPeakRate = float(inputDict.get('OffPeakRate'))
 	startmonth= int(inputDict.get('startMonth'))
@@ -165,11 +169,11 @@ def work(modelDir, inputDict):
 	outData["PeakDemandReduction"] = [peakDemandRed * ScalingAnnual ** x for x in range(lifeSpan)]
 	BenefitCurve = [x+y for x,y in zip(outData["EnergySaleChangeBenefit"], outData["PeakDemandReduction"])]
 	outData["TotalBenefit"] = sum(BenefitCurve)
-	outData["BenefittoCostRatio"] = float(outData["TotalBenefit"] / outData["TotalCost"])
+	outData["BenefittoCostRatio"] = float(old_div(outData["TotalBenefit"], outData["TotalCost"]))
 	netBenefit = [x+y+z for x,y,z in zip(outData["AnnualOpCost"],outData["lifePurchaseCosts"],BenefitCurve)]
 	outData["npv"] = npv(DiscountRate, netBenefit)
 	outData["cumulativeNetBenefit"] = [sum(netBenefit[0:i+1]) for i,d in enumerate(netBenefit)]
-	outData["SimplePaybackPeriod"] = DrTechCost / (outData["TotalBenefit"] / lifeSpan)
+	outData["SimplePaybackPeriod"] = old_div(DrTechCost, (old_div(outData["TotalBenefit"], lifeSpan)))
 	# Stdout/stderr.
 	outData["stdout"] = "Success"
 	outData["stderr"] = ""
@@ -201,16 +205,16 @@ def prism(prismDRDict):
 		prismDRDict['hrsOffPeakWCPP'] = prismDRDict['numHoursOff'] * prismDRDict['numCPPDays']
 		prismDRDict['hrsOnPeakWOCPP'] = ((prismDRDict['stopHour'] - prismDRDict['startHour'] + 1) * prismDRDict['dayCount']) - prismDRDict['hrsOnPeakWCPP']
 		prismDRDict['hrsOffPeakWOCPP'] = ((prismDRDict['dayCount'] * 24) - prismDRDict['hrsOnPeakWOCPP']) - prismDRDict['hrsOffPeakWCPP']
-		prismDRDict['hrsOnPeakPerMonthWCPP'] = float(prismDRDict['hrsOnPeakWCPP']) / float(prismDRDict['numMonths'])
-		prismDRDict['hrsOffPeakPerMonthWCPP'] = float(prismDRDict['hrsOffPeakWCPP']) / float(prismDRDict['numMonths'])
+		prismDRDict['hrsOnPeakPerMonthWCPP'] = old_div(float(prismDRDict['hrsOnPeakWCPP']), float(prismDRDict['numMonths']))
+		prismDRDict['hrsOffPeakPerMonthWCPP'] = old_div(float(prismDRDict['hrsOffPeakWCPP']), float(prismDRDict['numMonths']))
 	elif prismDRDict['rateStructure'] == '24hourly':
 		prismDRDict['hrsOn'] = 1 * prismDRDict['dayCount'] #Only one hour per day at a given price
 		prismDRDict['hrsOff'] = 23 * prismDRDict['dayCount']
 		prismDRDict['numHoursOn'] = 1 #Only one hour at a given price each day
 		prismDRDict['numHoursOff'] = 23
 	if prismDRDict['rateStructure'] != '24hourly':
-		prismDRDict['hrsOnPeakPerMonthWOCPP'] = float(prismDRDict['hrsOnPeakWOCPP']) / float(prismDRDict['numMonths'])
-		prismDRDict['hrsOffPeakPerMonthWOCPP'] = float(prismDRDict['hrsOffPeakWOCPP']) / float(prismDRDict['numMonths'])
+		prismDRDict['hrsOnPeakPerMonthWOCPP'] = old_div(float(prismDRDict['hrsOnPeakWOCPP']), float(prismDRDict['numMonths']))
+		prismDRDict['hrsOffPeakPerMonthWOCPP'] = old_div(float(prismDRDict['hrsOffPeakWOCPP']), float(prismDRDict['numMonths']))
 	# Do 2tierCPP. Finds largest load days and designate them CPP days.
 	if prismDRDict['rateStructure'] == '2tierCPP' or prismDRDict['rateStructure'] == 'PTR':
 		prismDRDict['cppHours'] = []
@@ -275,67 +279,67 @@ def prism(prismDRDict):
 		# else: #Load outside of cooling season not used
 	if prismDRDict['rateStructure'] == '2tierCPP' or prismDRDict['rateStructure'] == 'PTR':
 		prismDRDict['totalEnergy'] = prismDRDict['offPeakWOCPPEnergy'] + prismDRDict['onPeakWOCPPEnergy'] + prismDRDict['offPeakWCPPEnergy'] + prismDRDict['onPeakWCPPEnergy']
-		prismDRDict['onPeakWCPPMonAvgkWh'] = prismDRDict['onPeakWCPPEnergy']/prismDRDict['numMonths']
-		prismDRDict['offPeakWCPPMonAvgkWh'] = prismDRDict['offPeakWCPPEnergy']/prismDRDict['numMonths']
+		prismDRDict['onPeakWCPPMonAvgkWh'] = old_div(prismDRDict['onPeakWCPPEnergy'],prismDRDict['numMonths'])
+		prismDRDict['offPeakWCPPMonAvgkWh'] = old_div(prismDRDict['offPeakWCPPEnergy'],prismDRDict['numMonths'])
 	elif prismDRDict['rateStructure'] == '24hourly':
 		prismDRDict['totalEnergy'] = sum(hourlyEnergy)
 		prismDRDict['hourlyMonAvgkWh'] = list([0]*24)
 		for hour, energy in enumerate(hourlyEnergy):
-			prismDRDict['hourlyMonAvgkWh'][hour] = energy/prismDRDict['numMonths']
-		prismDRDict['offPeakMonAvgkWh'] = sum(prismDRDict['hourlyMonAvgkWh'])/prismDRDict['numMonths'] #For PRISM computation, defining the off-peak energy (used as elasticity baseline reference) as the average of the total energy.
+			prismDRDict['hourlyMonAvgkWh'][hour] = old_div(energy,prismDRDict['numMonths'])
+		prismDRDict['offPeakMonAvgkWh'] = old_div(sum(prismDRDict['hourlyMonAvgkWh']),prismDRDict['numMonths']) #For PRISM computation, defining the off-peak energy (used as elasticity baseline reference) as the average of the total energy.
 	else:
 		prismDRDict['totalEnergy'] = prismDRDict['offPeakWOCPPEnergy'] + prismDRDict['onPeakWOCPPEnergy']
-	prismDRDict['onPeakWOCPPMonAvgkWh'] = prismDRDict['onPeakWOCPPEnergy']/prismDRDict['numMonths']
-	prismDRDict['offPeakWOCPPMonAvgkWh'] = prismDRDict['offPeakWOCPPEnergy']/prismDRDict['numMonths']
-	prismDRDict['totalMonAvgkWh'] = prismDRDict['totalEnergy']/prismDRDict['numMonths']
+	prismDRDict['onPeakWOCPPMonAvgkWh'] = old_div(prismDRDict['onPeakWOCPPEnergy'],prismDRDict['numMonths'])
+	prismDRDict['offPeakWOCPPMonAvgkWh'] = old_div(prismDRDict['offPeakWOCPPEnergy'],prismDRDict['numMonths'])
+	prismDRDict['totalMonAvgkWh'] = old_div(prismDRDict['totalEnergy'],prismDRDict['numMonths'])
 	#Calculate impact factors for Non-CPP days.
 	if prismDRDict['rateStructure'] != '24hourly':
-		kWhPerHrOldOnPeakWOCPP = prismDRDict['onPeakWOCPPMonAvgkWh']/prismDRDict['hrsOnPeakPerMonthWOCPP'] # B30
-		kWhPerHrOldOffPeakWOCPP = prismDRDict['offPeakWOCPPMonAvgkWh']/prismDRDict['hrsOffPeakPerMonthWOCPP'] #C30
-		logFactorWOCPP = math.log(kWhPerHrOldOnPeakWOCPP/kWhPerHrOldOffPeakWOCPP) + prismDRDict['elasticitySubWOCPP'] * (math.log(prismDRDict['rateOnPeak']/prismDRDict['rateOffPeak'] - math.log(prismDRDict['rateFlat']/prismDRDict['rateFlat']))) #B28
-		kWhPerHrOldDailyWOCPP = ((kWhPerHrOldOnPeakWOCPP * prismDRDict['numHoursOn']) + (kWhPerHrOldOffPeakWOCPP * prismDRDict['numHoursOff']))/24 #D30
-		dailyNewPeakWOCPP = ((prismDRDict['rateOnPeak'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP) + (prismDRDict['rateOffPeak'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP)) / ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP)) #D24
-		dailyOldPeakWOCPP = ((prismDRDict['rateFlat'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP) + (prismDRDict['rateFlat'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP)) / ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP)) #D23
+		kWhPerHrOldOnPeakWOCPP = old_div(prismDRDict['onPeakWOCPPMonAvgkWh'],prismDRDict['hrsOnPeakPerMonthWOCPP']) # B30
+		kWhPerHrOldOffPeakWOCPP = old_div(prismDRDict['offPeakWOCPPMonAvgkWh'],prismDRDict['hrsOffPeakPerMonthWOCPP']) #C30
+		logFactorWOCPP = math.log(old_div(kWhPerHrOldOnPeakWOCPP,kWhPerHrOldOffPeakWOCPP)) + prismDRDict['elasticitySubWOCPP'] * (math.log(old_div(prismDRDict['rateOnPeak'],prismDRDict['rateOffPeak']) - math.log(old_div(prismDRDict['rateFlat'],prismDRDict['rateFlat'])))) #B28
+		kWhPerHrOldDailyWOCPP = old_div(((kWhPerHrOldOnPeakWOCPP * prismDRDict['numHoursOn']) + (kWhPerHrOldOffPeakWOCPP * prismDRDict['numHoursOff'])),24) #D30
+		dailyNewPeakWOCPP = old_div(((prismDRDict['rateOnPeak'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP) + (prismDRDict['rateOffPeak'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP)), ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP))) #D24
+		dailyOldPeakWOCPP = old_div(((prismDRDict['rateFlat'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP) + (prismDRDict['rateFlat'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP)), ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWOCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWOCPP))) #D23
 		kWhPerHrNewDailyWOCPP = math.exp(math.log(kWhPerHrOldDailyWOCPP) - (prismDRDict['elasticityDailyWOCPP'] * (math.log(dailyOldPeakWOCPP) - math.log(dailyNewPeakWOCPP)))) #D31
-		kWhPerHrNewOffPeakWOCPP =  ((24/float(prismDRDict['numHoursOff'])) * kWhPerHrNewDailyWOCPP) / (1+((prismDRDict['numHoursOn']/float(prismDRDict['numHoursOff'])) * math.exp(logFactorWOCPP))) #C31
+		kWhPerHrNewOffPeakWOCPP =  old_div(((old_div(24,float(prismDRDict['numHoursOff']))) * kWhPerHrNewDailyWOCPP), (1+((old_div(prismDRDict['numHoursOn'],float(prismDRDict['numHoursOff']))) * math.exp(logFactorWOCPP)))) #C31
 		kWhPerHrNewOnPeakWOCPP  = kWhPerHrNewOffPeakWOCPP * math.exp(logFactorWOCPP) #B31
 		kWhDeltaOnPeakWOCPP = kWhPerHrNewOnPeakWOCPP - kWhPerHrOldOnPeakWOCPP #B32
 		kWhDeltaOffPeakWOCPP = kWhPerHrNewOffPeakWOCPP - kWhPerHrOldOffPeakWOCPP #C32
-		prismDRDict['impactFactorOnPeakWOCPP'] = kWhDeltaOnPeakWOCPP/kWhPerHrOldOnPeakWOCPP #B33
-		prismDRDict['impactFactorOffPeakWOCPP'] = kWhDeltaOffPeakWOCPP/kWhPerHrOldOffPeakWOCPP #C33
+		prismDRDict['impactFactorOnPeakWOCPP'] = old_div(kWhDeltaOnPeakWOCPP,kWhPerHrOldOnPeakWOCPP) #B33
+		prismDRDict['impactFactorOffPeakWOCPP'] = old_div(kWhDeltaOffPeakWOCPP,kWhPerHrOldOffPeakWOCPP) #C33
 	if prismDRDict['rateStructure'] == '24hourly':
 		prismDRDict['impactFactor24hourly'] = list([0] * 24)
 		prismDRDict['rateOffPeak'] = prismDRDict['rateFlat']
-		kWhPerHrOldOffPeak = prismDRDict['offPeakMonAvgkWh']/prismDRDict['hrsOff']
+		kWhPerHrOldOffPeak = old_div(prismDRDict['offPeakMonAvgkWh'],prismDRDict['hrsOff'])
 		for hour,energy in enumerate(hourlyEnergy):
-			kWhPerHrOldOnPeak = prismDRDict['hourlyMonAvgkWh'][hour]/prismDRDict['hrsOn']
-			logFactor = math.log(kWhPerHrOldOnPeak/kWhPerHrOldOffPeak) + prismDRDict['elasticitySubWOCPP'] * (math.log(prismDRDict['rate24hourly'][hour]/prismDRDict['rateOffPeak'] - math.log(prismDRDict['rateFlat']/prismDRDict['rateFlat'])))
-			kWhPerHrOldDaily = ((kWhPerHrOldOnPeak * prismDRDict['numHoursOn']) + (kWhPerHrOldOffPeak * prismDRDict['numHoursOff']))/24
-			dailyNewPeak = ((prismDRDict['rate24hourly'][hour] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak) + (prismDRDict['rateOffPeak'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak)) / ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak))
-			dailyOldPeak = ((prismDRDict['rateFlat'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak) + (prismDRDict['rateFlat'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak)) / ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak))
+			kWhPerHrOldOnPeak = old_div(prismDRDict['hourlyMonAvgkWh'][hour],prismDRDict['hrsOn'])
+			logFactor = math.log(old_div(kWhPerHrOldOnPeak,kWhPerHrOldOffPeak)) + prismDRDict['elasticitySubWOCPP'] * (math.log(old_div(prismDRDict['rate24hourly'][hour],prismDRDict['rateOffPeak']) - math.log(old_div(prismDRDict['rateFlat'],prismDRDict['rateFlat']))))
+			kWhPerHrOldDaily = old_div(((kWhPerHrOldOnPeak * prismDRDict['numHoursOn']) + (kWhPerHrOldOffPeak * prismDRDict['numHoursOff'])),24)
+			dailyNewPeak = old_div(((prismDRDict['rate24hourly'][hour] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak) + (prismDRDict['rateOffPeak'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak)), ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak)))
+			dailyOldPeak = old_div(((prismDRDict['rateFlat'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak) + (prismDRDict['rateFlat'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak)), ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeak)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeak)))
 			kWhPerHrNewDaily = math.exp(math.log(kWhPerHrOldDaily) - (prismDRDict['elasticityDailyWOCPP'] * (math.log(dailyOldPeak) - math.log(dailyNewPeak))))
-			kWhPerHrNewOffPeak =  ((24/float(prismDRDict['numHoursOff'])) * kWhPerHrNewDaily) / (1+((prismDRDict['numHoursOn']/float(prismDRDict['numHoursOff'])) * math.exp(logFactor)))
+			kWhPerHrNewOffPeak =  old_div(((old_div(24,float(prismDRDict['numHoursOff']))) * kWhPerHrNewDaily), (1+((old_div(prismDRDict['numHoursOn'],float(prismDRDict['numHoursOff']))) * math.exp(logFactor))))
 			kWhPerHrNewOnPeak  = kWhPerHrNewOffPeak * math.exp(logFactor)
 			kWhDeltaOnPeak = kWhPerHrNewOnPeak - kWhPerHrOldOnPeak
-			prismDRDict['impactFactor24hourly'][hour] = kWhDeltaOnPeak/kWhPerHrOldOnPeak
+			prismDRDict['impactFactor24hourly'][hour] = old_div(kWhDeltaOnPeak,kWhPerHrOldOnPeak)
 	# Calculate CPP days.
 	if prismDRDict['rateStructure'] == '2tierCPP' or prismDRDict['rateStructure'] == 'PTR':
 		if prismDRDict['rateStructure'] == 'PTR':
 			prismDRDict['rateCPP'] = prismDRDict['ratePTR'] + prismDRDict['rateFlat'] #Total value for consumer during PTR periods
-		kWhPerHrOldOnPeakWCPP = prismDRDict['onPeakWCPPMonAvgkWh']/prismDRDict['hrsOnPeakPerMonthWCPP'] # B14
-		kWhPerHrOldOffPeakWCPP = prismDRDict['offPeakWCPPMonAvgkWh']/prismDRDict['hrsOffPeakPerMonthWCPP'] #C14
-		logFactorWCPP = math.log(kWhPerHrOldOnPeakWCPP/kWhPerHrOldOffPeakWCPP) + prismDRDict['elasticitySubWCPP'] * (math.log(prismDRDict['rateCPP']/prismDRDict['rateOffPeak'] - math.log(prismDRDict['rateFlat']/prismDRDict['rateFlat']))) #B12
-		kWhPerHrOldDailyWCPP = ((kWhPerHrOldOnPeakWCPP * prismDRDict['numHoursOn']) +
-								 (kWhPerHrOldOffPeakWCPP * prismDRDict['numHoursOff']))/24 #D14
-		dailyNewPeakWCPP = ((prismDRDict['rateCPP'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP) + (prismDRDict['rateOffPeak'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP)) / ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP)) #D8
-		dailyOldPeakWCPP = ((prismDRDict['rateFlat'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP) + (prismDRDict['rateFlat'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP)) / ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP)) #D7
+		kWhPerHrOldOnPeakWCPP = old_div(prismDRDict['onPeakWCPPMonAvgkWh'],prismDRDict['hrsOnPeakPerMonthWCPP']) # B14
+		kWhPerHrOldOffPeakWCPP = old_div(prismDRDict['offPeakWCPPMonAvgkWh'],prismDRDict['hrsOffPeakPerMonthWCPP']) #C14
+		logFactorWCPP = math.log(old_div(kWhPerHrOldOnPeakWCPP,kWhPerHrOldOffPeakWCPP)) + prismDRDict['elasticitySubWCPP'] * (math.log(old_div(prismDRDict['rateCPP'],prismDRDict['rateOffPeak']) - math.log(old_div(prismDRDict['rateFlat'],prismDRDict['rateFlat'])))) #B12
+		kWhPerHrOldDailyWCPP = old_div(((kWhPerHrOldOnPeakWCPP * prismDRDict['numHoursOn']) +
+								 (kWhPerHrOldOffPeakWCPP * prismDRDict['numHoursOff'])),24) #D14
+		dailyNewPeakWCPP = old_div(((prismDRDict['rateCPP'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP) + (prismDRDict['rateOffPeak'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP)), ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP))) #D8
+		dailyOldPeakWCPP = old_div(((prismDRDict['rateFlat'] * prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP) + (prismDRDict['rateFlat'] * prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP)), ((prismDRDict['numHoursOn'] * kWhPerHrOldOnPeakWCPP)+(prismDRDict['numHoursOff'] * kWhPerHrOldOffPeakWCPP))) #D7
 		kWhPerHrNewDailyWCPP = math.exp(math.log(kWhPerHrOldDailyWCPP) - (prismDRDict['elasticityDailyWCPP'] * (math.log(dailyOldPeakWCPP) - math.log(dailyNewPeakWCPP)))) #D15
-		kWhPerHrNewOffPeakWCPP =  ((24/float(prismDRDict['numHoursOff'])) * kWhPerHrNewDailyWCPP) / (1+((prismDRDict['numHoursOn']/float(prismDRDict['numHoursOff'])) * math.exp(logFactorWCPP))) #C15
+		kWhPerHrNewOffPeakWCPP =  old_div(((old_div(24,float(prismDRDict['numHoursOff']))) * kWhPerHrNewDailyWCPP), (1+((old_div(prismDRDict['numHoursOn'],float(prismDRDict['numHoursOff']))) * math.exp(logFactorWCPP)))) #C15
 		kWhPerHrNewOnPeakWCPP  = kWhPerHrNewOffPeakWCPP * math.exp(logFactorWCPP) #B15
 		kWhDeltaOnPeakWCPP = kWhPerHrNewOnPeakWCPP - kWhPerHrOldOnPeakWCPP #B16
 		kWhDeltaOffPeakWCPP = kWhPerHrNewOffPeakWCPP - kWhPerHrOldOffPeakWCPP #C16
-		prismDRDict['impactFactorOnPeakWCPP'] = kWhDeltaOnPeakWCPP/kWhPerHrOldOnPeakWCPP #B17
-		prismDRDict['impactFactorOffPeakWCPP'] = kWhDeltaOffPeakWCPP/kWhPerHrOldOffPeakWCPP #C17
+		prismDRDict['impactFactorOnPeakWCPP'] = old_div(kWhDeltaOnPeakWCPP,kWhPerHrOldOnPeakWCPP) #B17
+		prismDRDict['impactFactorOffPeakWCPP'] = old_div(kWhDeltaOffPeakWCPP,kWhPerHrOldOffPeakWCPP) #C17
 	# Make the modified load curve.
 	prismDRDict['modLoad'] = list(prismDRDict['origLoad'])
 	for idx, load in enumerate(prismDRDict['origLoad']):

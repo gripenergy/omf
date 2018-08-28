@@ -18,14 +18,14 @@ invs = []
 tree = feeder.parse(glmFile)
 # Find solar objects
 for row in tree:
-	if 'object' in tree[row].keys():
+	if 'object' in list(tree[row].keys()):
 		if tree[row]['object'] == 'solar':
 			solarObjs.append(tree[row])
 			solarKeys.append(row)
 			inverters.append(tree[row]['parent'])
 # Find inverters of solar objs
 for row in tree:
-	if 'object' in tree[row].keys():
+	if 'object' in list(tree[row].keys()):
 		if tree[row]['object'] == 'inverter':
 			if tree[row]['name'] in inverters:
 				inverterKeys.append(row)
@@ -33,12 +33,12 @@ for row in tree:
 				meterNames.append(tree[row]['parent'])
 # Find meters 
 for row in tree:
-	if 'object' in tree[row].keys():
+	if 'object' in list(tree[row].keys()):
 		if tree[row]['name'] in meterNames:
 			meterKeys.append(row)
 for row in tree:
 	for met in meterNames:
-		if 'name' in tree[row].keys():
+		if 'name' in list(tree[row].keys()):
 			if met == tree[row]['name']:
 				meters.append(tree[row])
 # Create as many load objects with same name as PVs

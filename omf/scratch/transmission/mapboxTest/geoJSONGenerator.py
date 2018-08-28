@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback, math,copy
 import multiprocessing, platform
 from os.path import join as pJoin
@@ -20,7 +24,7 @@ def scaleCase9(networkJson, iterations):
 	newBranches ={}
 	busCounter = 0
 	for x in range(iterations):
-		for key, bus in networkJson["bus"].iteritems():
+		for key, bus in networkJson["bus"].items():
 			newKey = str(int(key) + busCounter)
 			newBuses[newKey] = copy.deepcopy(bus)
 			newBuses[newKey]["bus_i"] = newKey
@@ -28,7 +32,7 @@ def scaleCase9(networkJson, iterations):
 
 	genCounter = 0
 	for x in range(iterations):
-		for key, gen in networkJson["gen"].iteritems():
+		for key, gen in networkJson["gen"].items():
 			newKey = str(int(key) + genCounter)
 			newGens[newKey] = copy.deepcopy(gen)
 			newGens[newKey]["bus"] = newKey
@@ -36,7 +40,7 @@ def scaleCase9(networkJson, iterations):
 
 	branchCounter = 0
 	for x in range(iterations):
-		for key, branch in networkJson["branch"].iteritems():
+		for key, branch in networkJson["branch"].items():
 			newKey = str(int(key) + branchCounter)
 			newBranches[newKey] = copy.deepcopy(branch)
 			newBranches[newKey]["fbus"] = str(int(branch["fbus"]) + branchCounter)
@@ -83,14 +87,14 @@ def scaleCase9ToMapbox(networkJson, iterations):
 
 	busCounter = 0
 	for x in range(iterations):
-		for key, bus in networkJson["bus"].iteritems():
+		for key, bus in networkJson["bus"].items():
 			newObject = copy.deepcopy(objectTemplate)
 			newKey = str(int(key) + busCounter)
 			newObject["properties"]["title"] = "Bus_"+ newKey
-			newObject["geometry"]["coordinates"][0] = bus["longitude"]/1000
-			newObject["geometry"]["coordinates"][1] = bus["latitude"]/1000
-			busLong[newKey] = bus["longitude"]/1000
-			busLat[newKey] = bus["latitude"]/1000
+			newObject["geometry"]["coordinates"][0] = old_div(bus["longitude"],1000)
+			newObject["geometry"]["coordinates"][1] = old_div(bus["latitude"],1000)
+			busLong[newKey] = old_div(bus["longitude"],1000)
+			busLat[newKey] = old_div(bus["latitude"],1000)
 			newObject["geometry"]["type"] = "Point"
 			newObject["properties"]["Va"] = bus["Va"]
 			newObject["properties"]["Gs"] = bus["Gs"]
@@ -123,7 +127,7 @@ def scaleCase9ToMapbox(networkJson, iterations):
 	'''
 	branchCounter = 0
 	for x in range(iterations):
-		for key, branch in networkJson["branch"].iteritems():
+		for key, branch in networkJson["branch"].items():
 			newObject = copy.deepcopy(objectTemplate)
 			newKey = str(int(key) + branchCounter)
 			newObject["properties"]["title"] = "Branch_"+ newKey

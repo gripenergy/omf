@@ -1,6 +1,7 @@
 """ Common functions for all models """
 from __future__ import print_function
 
+from builtins import str
 import json, os, sys, tempfile, webbrowser, math, shutil, datetime, omf, multiprocessing, traceback
 from jinja2 import Template
 from os.path import join as pJoin

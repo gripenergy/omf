@@ -1,6 +1,11 @@
 ''' Powerflow results for one Gridlab instance. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import zip
+from builtins import str
+from past.utils import old_div
 import json, os, sys, tempfile, csv, webbrowser, time, shutil, datetime, subprocess, math, gc, networkx as nx,  numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -103,20 +108,20 @@ def work(modelDir, inputDict):
 		copyStub['file'] = phase.lower() + 'mVoltDump.csv'
 		tree[feeder.getMaxKey(tree) + 1] = copyStub
 	for key in tree:
-		if 'bustype' in tree[key].keys():
+		if 'bustype' in list(tree[key].keys()):
 			if tree[key]['bustype'] == 'SWING':
 				tree[key]['object'] = 'meter'
 				swingN = tree[key]['name']
 	swingRecord = {'object':'recorder', 'property':'voltage_A,measured_real_power,measured_power','file':'subVoltsA.csv','parent':swingN, 'interval':60}
 	tree[feeder.getMaxKey(tree) + 1] = swingRecord
 	for key in tree:
-		if 'omftype' in tree[key].keys() and tree[key]['argument']=='minimum_timestep=3600':
+		if 'omftype' in list(tree[key].keys()) and tree[key]['argument']=='minimum_timestep=3600':
 			tree[key]['argument'] = 'minimum_timestep=60'
 	# If there is a varvolt object in the tree, add recorder to swingbus and node from voltage_measurements property
 	# Find var_volt object
 	downLineNode = 'None'
 	for key in tree:
-		if 'object' in tree[key].keys() and tree[key]['object']=='volt_var_control':
+		if 'object' in list(tree[key].keys()) and tree[key]['object']=='volt_var_control':
 			downLineNode = tree[key]['voltage_measurements']
 	if downLineNode != 'None':
 		downNodeRecord = {'object':'recorder', 'property':'voltage_A','file':'firstDownlineVoltsA.csv','parent':downLineNode, 'interval':60}
@@ -180,10 +185,10 @@ def work(modelDir, inputDict):
 	# Voltage Band
 	if 'VoltageJiggle.csv' in rawOut:
 		outData['allMeterVoltages'] = {}
-		outData['allMeterVoltages']['Min'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['min(voltage_12.mag)']], min, level)
-		outData['allMeterVoltages']['Mean'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['mean(voltage_12.mag)']], avg, level)
-		outData['allMeterVoltages']['StdDev'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['std(voltage_12.mag)']], avg, level)
-		outData['allMeterVoltages']['Max'] = hdmAgg([float(i / 2) for i in rawOut['VoltageJiggle.csv']['max(voltage_12.mag)']], max, level)
+		outData['allMeterVoltages']['Min'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['min(voltage_12.mag)']], min, level)
+		outData['allMeterVoltages']['Mean'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['mean(voltage_12.mag)']], avg, level)
+		outData['allMeterVoltages']['StdDev'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['std(voltage_12.mag)']], avg, level)
+		outData['allMeterVoltages']['Max'] = hdmAgg([float(old_div(i, 2)) for i in rawOut['VoltageJiggle.csv']['max(voltage_12.mag)']], max, level)
 	# Power Consumption
 	outData['Consumption'] = {}
 	# Set default value to be 0, avoiding missing value when computing Loads
@@ -285,7 +290,7 @@ def work(modelDir, inputDict):
 	# real_power / power
 	powerFactors = []
 	for row in subData[FIRST_DATA_ROW:-1]:
-		powerFactors.append(abs(float(row[2])/stringToMag(row[3])))
+		powerFactors.append(abs(old_div(float(row[2]),stringToMag(row[3]))))
 	outData['powerFactors'] = powerFactors
 	outData['swingVoltage'] = cleanSub
 	outData['downlineNodeVolts'] = cleanDown
@@ -295,7 +300,7 @@ def work(modelDir, inputDict):
 	maxVoltBand = []
 	if downLineNode != 'None':
 		for key in tree:
-			objKeys = tree[key].keys()
+			objKeys = list(tree[key].keys())
 			if 'object' in objKeys:
 				if tree[key]['object']=='volt_var_control':
 					minVoltBand.append(float(tree[key]['minimum_voltages']))
@@ -366,7 +371,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 	for step, stamp in enumerate(rawOut['aVoltDump.csv']['# timestamp']):
 		# Build voltage map.
 		nodeVolts[step] = {}
-		for nodeName in [x for x in rawOut.get('aVoltDump.csv',{}).keys() + rawOut.get('1nVoltDump.csv',{}).keys() + rawOut.get('1mVoltDump.csv',{}).keys() if x != '# timestamp']:
+		for nodeName in [x for x in list(rawOut.get('aVoltDump.csv',{}).keys()) + list(rawOut.get('1nVoltDump.csv',{}).keys()) + list(rawOut.get('1mVoltDump.csv',{}).keys()) if x != '# timestamp']:
 			allVolts = []
 			for phase in ['a','b','c','1n','2n','1m','2m']:
 				try:
@@ -381,7 +386,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 				if phaseVolt != 0.0:
 					if _digits(phaseVolt)>3:
 						# Normalize to 120 V standard
-						phaseVolt = phaseVolt*(120/feedVoltage)
+						phaseVolt = phaseVolt*(old_div(120,feedVoltage))
 					allVolts.append(phaseVolt)
 			# HACK: Take average of all phases to collapse dimensionality.
 			nodeVolts[step][nodeName] = avg(allVolts)
@@ -392,7 +397,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 			lineCurrents[step] = {} 
 			currentArray = []
 			# Finding currents of all phases on the line
-			for key in [x for x in rawOut.get('OH_line_current_phaseA.csv',{}).keys() if x != '# timestamp']:
+			for key in [x for x in list(rawOut.get('OH_line_current_phaseA.csv',{}).keys()) if x != '# timestamp']:
 				currA = rawOut['OH_line_current_phaseA.csv'][key][step]
 				currB = rawOut['OH_line_current_phaseB.csv'][key][step]
 				currC = rawOut['OH_line_current_phaseC.csv'][key][step]
@@ -409,7 +414,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 					maxCurrent = max(abs(currA),abs(currB),abs(currC))
 					directedCurrent = float(maxCurrent/lineRating * direction)
 				for objt in tree:
-					if 'name' in tree[objt].keys():
+					if 'name' in list(tree[objt].keys()):
 						if tree[objt]['name'] == str(int(key)):
 							keyTup = (tree[objt]['to'],tree[objt]['from'])
 				lineCurrents[step][keyTup] = directedCurrent
@@ -418,7 +423,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 		for step, stamp in enumerate(rawOut['UG_line_current_phaseA.csv']['# timestamp']):
 			currentArray = []
 			# Finding currents of all phases on the line
-			for key in [x for x in rawOut.get('UG_line_current_phaseA.csv',{}).keys() if x != '# timestamp']:
+			for key in [x for x in list(rawOut.get('UG_line_current_phaseA.csv',{}).keys()) if x != '# timestamp']:
 				currA = rawOut['UG_line_current_phaseA.csv'][key][step]
 				currB = rawOut['UG_line_current_phaseB.csv'][key][step]
 				currC = rawOut['UG_line_current_phaseC.csv'][key][step]
@@ -435,13 +440,13 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 					maxCurrent = max(abs(currA),abs(currB),abs(currC))
 					directedCurrent = float(maxCurrent/lineRating * direction)
 				for objt in tree:
-					if 'name' in tree[objt].keys():
+					if 'name' in list(tree[objt].keys()):
 						if tree[objt]['name'] == str(int(key)):
 							keyTup = (tree[objt]['to'],tree[objt]['from'])
 				lineCurrents[step][keyTup] = directedCurrent
 		for step in lineCurrents:
 			for edge in fGraph.edges():
-				if edge not in lineCurrents[step].keys():
+				if edge not in list(lineCurrents[step].keys()):
 					lineCurrents[step][edge] = 0
 	# Draw animation.
 	voltChart = plt.figure(figsize=(15,15))
@@ -491,7 +496,7 @@ def generateVoltChart(tree, rawOut, modelDir, neatoLayout=True):
 
 def avg(inList):
 	''' Average a list. Really wish this was built-in. '''
-	return sum(inList)/len(inList)
+	return old_div(sum(inList),len(inList))
 
 def hdmAgg(series, func, level):
 	''' Simple hour/day/month aggregation for Gridlab. '''
@@ -505,12 +510,12 @@ def aggSeries(timeStamps, timeSeries, func, level):
 	# Different substring depending on what level we aggregate to:
 	if level=='months': endPos = 7
 	elif level=='days': endPos = 10
-	combo = zip(timeStamps, timeSeries)
+	combo = list(zip(timeStamps, timeSeries))
 	# Group by level:
 	groupedCombo = _groupBy(combo, lambda x1,x2: x1[0][0:endPos]==x2[0][0:endPos])
 	# Get rid of the timestamps:
 	groupedRaw = [[pair[1] for pair in group] for group in groupedCombo]
-	return map(func, groupedRaw)
+	return list(map(func, groupedRaw))
 
 def _pyth(x,y):
 	''' Compute the third side of a triangle--BUT KEEP SIGNS THE SAME FOR DG. '''
@@ -524,12 +529,12 @@ def _digits(x):
 
 def vecPyth(vx,vy):
 	''' Pythagorean theorem for pairwise elements from two vectors. '''
-	rows = zip(vx,vy)
-	return map(lambda x:_pyth(*x), rows)
+	rows = list(zip(vx,vy))
+	return [_pyth(*x) for x in rows]
 
 def vecSum(*args):
 	''' Add n vectors. '''
-	return map(sum,zip(*args))
+	return list(map(sum,list(zip(*args))))
 
 def _prod(inList):
 	''' Product of all values in a list. '''
@@ -537,17 +542,17 @@ def _prod(inList):
 
 def vecProd(*args):
 	''' Multiply n vectors. '''
-	return map(_prod, zip(*args))
+	return list(map(_prod, list(zip(*args))))
 
 def threePhasePowFac(ra,rb,rc,ia,ib,ic):
 	''' Get power factor for a row of threephase volts and amps. Gridlab-specific. '''
-	pfRow = lambda row:math.cos(math.atan((row[0]+row[1]+row[2])/(row[3]+row[4]+row[5])))
-	rows = zip(ra,rb,rc,ia,ib,ic)
-	return map(pfRow, rows)
+	pfRow = lambda row:math.cos(math.atan(old_div((row[0]+row[1]+row[2]),(row[3]+row[4]+row[5]))))
+	rows = list(zip(ra,rb,rc,ia,ib,ic))
+	return list(map(pfRow, rows))
 
 def roundSeries(ser):
 	''' Round everything in a vector to 4 sig figs. '''
-	return map(lambda x:roundSig(x,4), ser)
+	return [roundSig(x,4) for x in ser]
 
 def _groupBy(inL, func):
 	''' Take a list and func, and group items in place comparing with func. Make sure the func is an equivalence relation, or your brain will hurt. '''

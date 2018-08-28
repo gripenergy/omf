@@ -8,6 +8,7 @@ Count the number of lines of code in this project. Ignores the data stores and l
 '''
 from __future__ import print_function
 
+from builtins import map
 import os
 
 def cleanList(inList):
@@ -31,7 +32,7 @@ def recursiveFileList(direct):
 	return fileList
 
 allSource = cleanList(recursiveFileList('..'))
-lineCountList = map(lineCount, allSource)
+lineCountList = list(map(lineCount, allSource))
 
 print('Per-file breakdown:')
 for pair in map(fileNameAndLineCount, allSource):

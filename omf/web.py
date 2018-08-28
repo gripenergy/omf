@@ -1,6 +1,12 @@
 ''' Web server for model-oriented OMF interface. '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import map
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from flask import Flask, send_from_directory, request, redirect, render_template, session, abort, jsonify, Response, url_for
 from jinja2 import Template
 from multiprocessing import Process
@@ -64,7 +70,7 @@ def getDataNames():
 # AUTHENTICATION AND USER FUNCTIONS
 ###################################################
 
-class User:
+class User(object):
 	def __init__(self, jsonBlob): self.username = jsonBlob["username"]
 	# Required flask_login functions.
 	def is_admin(self): return self.username == "admin"
@@ -123,8 +129,8 @@ app.jinja_env.globals["csrf_token"] = generate_csrf_token
 @app.route("/login", methods = ["POST"])
 def login():
 	''' Authenticate a user and send them to the URL they requested. '''
-	username, password, remember = map(request.form.get, ["username",
-		"password", "remember"])
+	username, password, remember = list(map(request.form.get, ["username",
+		"password", "remember"]))
 	userJson = None
 	for u in safeListdir("./data/User/"):
 		if u.lower() == username.lower() + ".json":
@@ -222,7 +228,7 @@ def register(email, reg_key):
 		return "This page either expired, or you are not supposed to access it. It might not even exist"
 	if request.method == "GET":
 		return render_template("register.html", email=email)
-	password, confirm_password = map(request.form.get, ["password", "confirm_password"])
+	password, confirm_password = list(map(request.form.get, ["password", "confirm_password"]))
 	if password == confirm_password and request.form.get("legalAccepted","") == "on":
 		user["username"] = email
 		user["password_digest"] = pbkdf2_sha512.encrypt(password)
@@ -236,7 +242,7 @@ def register(email, reg_key):
 @app.route("/changepwd", methods=["POST"])
 @flask_login.login_required
 def changepwd():
-	old_pwd, new_pwd, conf_pwd = map(request.form.get, ["old_pwd", "new_pwd", "conf_pwd"])
+	old_pwd, new_pwd, conf_pwd = list(map(request.form.get, ["old_pwd", "new_pwd", "conf_pwd"]))
 	user = json.load(open("./data/User/" + User.cu() + ".json"))
 	if pbkdf2_sha512.verify(old_pwd, user["password_digest"]):
 		if new_pwd == conf_pwd:
@@ -442,7 +448,7 @@ def milsoftImport(owner):
 	for file in fileList:
 		if file.endswith(".glm") or file.endswith(".std") or file.endswith(".seq"):
 			os.remove(path+"/"+file)
-	stdFile, seqFile = map(lambda x: request.files[x], ["stdFile", "seqFile"])
+	stdFile, seqFile = [request.files[x] for x in ["stdFile", "seqFile"]]
 	# stdFile, seqFile= request.files['stdFile','seqFile']
 	stdFile.save(os.path.join(modelFolder,feederName+'.std'))
 	seqFile.save(os.path.join(modelFolder,feederName+'.seq'))
@@ -590,7 +596,7 @@ def scadaLoadshape(owner,feederName):
 	secondDateTime = dt.datetime.strptime(allData[2]["timestamp"], "%m/%d/%Y %H:%M:%S")
 	csvLength = len(allData)
 	units =  (secondDateTime - firstDateTime).total_seconds()
-	if abs(units/3600) == 1.0:
+	if abs(old_div(units,3600)) == 1.0:
 		simLengthUnits = 'hours'
 	simDate = firstDateTime
 	simStartDate = {"Date":simDate,"timeZone":"PST"}
@@ -984,10 +990,10 @@ def climateChange(owner, feederName):
 def backgroundClimateChange(modelDir, omdPath, outFilePath):
 	with open(omdPath, 'r') as inFile:
 		feederJson = json.load(inFile)
-		for key in feederJson['tree'].keys():
+		for key in list(feederJson['tree'].keys()):
 			if (feederJson['tree'][key].get('object') == 'climate') or (feederJson['tree'][key].get('name') == 'weatherReader'):
 				del feederJson['tree'][key]
-		for key in feederJson['attachments'].keys():
+		for key in list(feederJson['attachments'].keys()):
 			if (key.endswith('.tmy2')) or (key == 'weatherAirport.csv'):
 				del feederJson['attachments'][key]
 		importOption = request.form.get('climateImportOption')

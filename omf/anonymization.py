@@ -1,6 +1,11 @@
 ''' Functions for anonymizing data in OMF distribution and transmission systems.'''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, math, random, datetime, os
 from os.path import join as pJoin
 
@@ -47,7 +52,7 @@ def distPseudomizeNames(inFeeder):
 def distRandomizeNames(inFeeder):
 	''' Replace all names in the inFeeder distribution system with a random ID number. '''
 	newNameKey = {}
-	allKeys = range(len(inFeeder['tree'].keys()))
+	allKeys = list(range(len(list(inFeeder['tree'].keys()))))
 	random.shuffle(allKeys)
 	# Create nameKey dictionary
 	for count, key in enumerate(inFeeder['tree']):
@@ -137,7 +142,7 @@ def distTranslateLocations(inFeeder, translationRight, translationUp, rotation):
 			inFeeder['tree'][key]['latitude']=latitude+translationUp
 	#Find composite midpoint to rotate around. It is the average point of the feeder's extrema
 	#Find greatest Lat, least lat, great lon, least lon, then midpoint
-	for key, value1 in inFeeder['tree'].iteritems():
+	for key, value1 in inFeeder['tree'].items():
 		if 'latitude' in value1:
 			if value1['latitude']>biggestLat:
 				biggestLat = value1['latitude']
@@ -148,8 +153,8 @@ def distTranslateLocations(inFeeder, translationRight, translationUp, rotation):
 				biggestLon = value1['longitude']
 			if value1['longitude'] < smallestLon:
 				smallestLat = value1['longitude']
-	midLon = float((biggestLon + smallestLon))/2
-	midLat = float((biggestLat +smallestLat))/2
+	midLon = old_div(float((biggestLon + smallestLon)),2)
+	midLat = old_div(float((biggestLat +smallestLat)),2)
 	#Rotate
 	for key in inFeeder['tree']:
 		if ('longitude' in inFeeder['tree'][key]) or ('latitude' in inFeeder['tree'][key]):
@@ -173,7 +178,7 @@ def distAddNoise(inFeeder, noisePerc):
 				val = inFeeder['tree'][key][prop]
 				try:
 					parseVal = float(val)
-					randNoise = random.uniform(-noisePerc, noisePerc)/100
+					randNoise = old_div(random.uniform(-noisePerc, noisePerc),100)
 					randVal = parseVal + randNoise*parseVal
 					inFeeder['tree'][key][prop] = str(randVal)
 				except ValueError:
@@ -181,7 +186,7 @@ def distAddNoise(inFeeder, noisePerc):
 						compVal = complex(val)
 						realVal = float(compVal.real)
 						imagVal = float(compVal.imag)
-						randNoise = random.uniform(-noisePerc, noisePerc)/100
+						randNoise = old_div(random.uniform(-noisePerc, noisePerc),100)
 						randReal = realVal + randNoise*realVal
 						randImag = imagVal + randNoise*imagVal
 						randVal = complex(randReal, randImag)
@@ -306,10 +311,10 @@ def distModifyTriplexLengths(inFeeder):
 				if (tLookup[tLine].get('conductor_1') == inFeeder['tree'][key].get('name')) or (tLookup[tLine].get('conductor_2') == inFeeder['tree'][key].get('name')) or (tLookup[tLine].get('conductor_N') == inFeeder['tree'][key].get('name')):
 					tLookup[tLine].update(resistance=inFeeder['tree'][key].get('resistance'))
 	for tLine in tLookup:
-		resistivity = ( float(tLookup[tLine].get('resistance'))*math.pi*(float(tLookup[tLine].get('diameter'))/2.0)**2 ) / float(tLookup[tLine].get('length'))
+		resistivity = old_div(( float(tLookup[tLine].get('resistance'))*math.pi*(old_div(float(tLookup[tLine].get('diameter')),2.0))**2 ), float(tLookup[tLine].get('length')))
 		tLookup[tLine]['length'] = random.uniform( float(tLookup[tLine].get('length'))-float(tLookup[tLine].get('length')), float(tLookup[tLine].get('length'))+float(tLookup[tLine].get('length')) )
-		tLookup[tLine]['diameter'] = random.uniform( (float(tLookup[tLine].get('diameter'))-float(tLookup[tLine].get('diameter')))*1000, (float(tLookup[tLine].get('diameter'))+float(tLookup[tLine].get('diameter')))*1000 ) / 1000.0
-		tLookup[tLine]['resistance'] = (resistivity*float(tLookup[tLine].get('length'))) / (math.pi*(float(tLookup[tLine].get('diameter'))/2.0)**2)
+		tLookup[tLine]['diameter'] = old_div(random.uniform( (float(tLookup[tLine].get('diameter'))-float(tLookup[tLine].get('diameter')))*1000, (float(tLookup[tLine].get('diameter'))+float(tLookup[tLine].get('diameter')))*1000 ), 1000.0)
+		tLookup[tLine]['resistance'] = old_div((resistivity*float(tLookup[tLine].get('length'))), (math.pi*(old_div(float(tLookup[tLine].get('diameter')),2.0))**2))
 		for key in inFeeder['tree']:
 			if inFeeder['tree'][key].get('name') == tLine:
 				inFeeder['tree'][key]['length'] = tLookup[tLine].get('length')
@@ -369,10 +374,10 @@ def distModifyConductorLengths(inFeeder):
 					oLookup[oLine].update(geometric_mean_radius=inFeeder['tree'][key].get('geometric_mean_radius'))
 	
 	for uLine in uLookup:
-		resistivity = ( float(uLookup[uLine].get('conductor_resistance'))*math.pi*(float(uLookup[uLine].get('conductor_diameter'))/2.0)**2 ) / float(uLookup[uLine].get('length'))
+		resistivity = old_div(( float(uLookup[uLine].get('conductor_resistance'))*math.pi*(old_div(float(uLookup[uLine].get('conductor_diameter')),2.0))**2 ), float(uLookup[uLine].get('length')))
 		uLookup[uLine]['length'] = random.uniform( float(uLookup[uLine].get('length'))-float(uLookup[uLine].get('length')), float(uLookup[uLine].get('length'))+float(uLookup[uLine].get('length')) )
-		uLookup[uLine]['conductor_diameter'] = random.uniform( (float(uLookup[uLine].get('conductor_diameter'))-float(uLookup[uLine].get('conductor_diameter')))*1000, (float(uLookup[uLine].get('conductor_diameter'))+float(uLookup[uLine].get('conductor_diameter')))*1000 ) / 1000.0
-		uLookup[uLine]['conductor_resistance'] = (resistivity*float(uLookup[uLine].get('length'))) / (math.pi*(float(uLookup[uLine].get('conductor_diameter'))/2.0)**2)
+		uLookup[uLine]['conductor_diameter'] = old_div(random.uniform( (float(uLookup[uLine].get('conductor_diameter'))-float(uLookup[uLine].get('conductor_diameter')))*1000, (float(uLookup[uLine].get('conductor_diameter'))+float(uLookup[uLine].get('conductor_diameter')))*1000 ), 1000.0)
+		uLookup[uLine]['conductor_resistance'] = old_div((resistivity*float(uLookup[uLine].get('length'))), (math.pi*(old_div(float(uLookup[uLine].get('conductor_diameter')),2.0))**2))
 		for key in inFeeder['tree']:
 			if inFeeder['tree'][key].get('name') == uLine:
 				inFeeder['tree'][key]['length'] = uLookup[uLine].get('length')
@@ -380,10 +385,10 @@ def distModifyConductorLengths(inFeeder):
 				inFeeder['tree'][key]['conductor_resistance'] = uLookup[uLine].get('conductor_resistance')
 				inFeeder['tree'][key]['conductor_diameter'] = uLookup[uLine].get('conductor_diameter')
 	for oLine in oLookup:
-		resistivity = ( float(oLookup[oLine].get('resistance'))*math.pi*float(oLookup[oLine].get('geometric_mean_radius'))**2 ) / float(oLookup[oLine].get('length'))
+		resistivity = old_div(( float(oLookup[oLine].get('resistance'))*math.pi*float(oLookup[oLine].get('geometric_mean_radius'))**2 ), float(oLookup[oLine].get('length')))
 		oLookup[oLine]['length'] = random.uniform( float(oLookup[oLine].get('length'))-float(oLookup[oLine].get('length')), float(oLookup[oLine].get('length'))+float(oLookup[oLine].get('length')) )
-		oLookup[oLine]['geometric_mean_radius'] = random.uniform( (float(oLookup[oLine].get('geometric_mean_radius'))-float(oLookup[oLine].get('geometric_mean_radius')))*1000, (float(oLookup[oLine].get('geometric_mean_radius'))+float(oLookup[oLine].get('geometric_mean_radius')))*1000 ) / 1000.0
-		oLookup[oLine]['resistance'] = (resistivity*float(oLookup[oLine].get('length'))) / (math.pi*float(oLookup[oLine].get('geometric_mean_radius'))**2)
+		oLookup[oLine]['geometric_mean_radius'] = old_div(random.uniform( (float(oLookup[oLine].get('geometric_mean_radius'))-float(oLookup[oLine].get('geometric_mean_radius')))*1000, (float(oLookup[oLine].get('geometric_mean_radius'))+float(oLookup[oLine].get('geometric_mean_radius')))*1000 ), 1000.0)
+		oLookup[oLine]['resistance'] = old_div((resistivity*float(oLookup[oLine].get('length'))), (math.pi*float(oLookup[oLine].get('geometric_mean_radius'))**2))
 		for key in inFeeder['tree']:
 			if inFeeder['tree'][key].get('name') == oLine:
 				inFeeder['tree'][key]['length'] = oLookup[oLine].get('length')
@@ -421,7 +426,7 @@ def distSmoothLoads(inFeeder):
 			except:
 				continue
 			agList.append([agDate, agHour, agAmount])
-	agZip = zip(*agList)
+	agZip = list(zip(*agList))
 	for i in range(len(agZip[0])):
 		date = str(agZip[0][i])
 		hr = str(agZip[1][i])
@@ -440,7 +445,7 @@ def tranPseudomizeNames(inNetwork):
 	randomID = random.randint(0,100)
 	# Create busKey dictionary
 	for i in inNetwork['bus']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'bus_i' in prop:
 				oldBus = i[key]['bus_i']
@@ -452,14 +457,14 @@ def tranPseudomizeNames(inNetwork):
 				randomID += 1
 	# Replace busNames in generators
 	for i in inNetwork['gen']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'bus' in prop:
 				oldBus = i[key]['bus']
 				i[key]['bus'] = newBusKey[oldBus]
 	# Replace busNames in branches
 	for i in inNetwork['branch']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'fbus' in prop:
 				oldFrom = i[key]['fbus']
@@ -475,7 +480,7 @@ def tranRandomizeNames(inNetwork):
 	randomID = random.randint(0,100)
 	# Create busKey dictionary
 	for i in inNetwork['bus']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'bus_i' in prop:
 				oldBus = i[key]['bus_i']
@@ -487,14 +492,14 @@ def tranRandomizeNames(inNetwork):
 				randomID += 1
 	# Replace busNames in generators
 	for i in inNetwork['gen']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'bus' in prop:
 				oldBus = i[key]['bus']
 				i[key]['bus'] = newBusKey[oldBus]
 	# Replace busNames in branches
 	for i in inNetwork['branch']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'fbus' in prop:
 				oldFrom = i[key]['fbus']
@@ -509,7 +514,7 @@ def tranRandomizeLocations(inNetwork):
 	# inNetwork['gen'] = []
 	# inNetwork['branch'] = []
 	for i in inNetwork['bus']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'longitude' in prop:
 				i[key]['longitude'] = random.randint(0,1000)
@@ -524,7 +529,7 @@ def tranTranslateLocations(inNetwork, translation, rotation):
 	translation = float(translation)
 	rotation = float(rotation)
 	for i in inNetwork['bus']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'longitude' in prop:
 				longitude = float(i[key]['longitude'])
@@ -540,13 +545,13 @@ def tranAddNoise(inNetwork, noisePerc):
 		if (array == 'bus') or (array == 'gen') or (array == 'branch'):
 			arrayId = 0
 			for i in inNetwork[array]:
-				key = str(i.keys()[0])
+				key = str(list(i.keys())[0])
 				for prop in i[key]:
 					if ('bus' not in prop) and ('status' not in prop):
 						val = i[key][prop]
 						try:
 							parseVal = float(val)
-							randNoise = random.randint(-noisePerc, noisePerc)/100
+							randNoise = old_div(random.randint(-noisePerc, noisePerc),100)
 							randVal = parseVal + randNoise*parseVal
 							i[key][prop] = str(randVal)
 						except ValueError:
@@ -562,7 +567,7 @@ def tranShuffleLoadsAndGens(inNetwork, shufPerc):
 	pParents = []
 	busId = 0
 	for i in inNetwork['bus']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'Qd' in prop:
 				qParents.append(i[key]['Qd'])
@@ -575,7 +580,7 @@ def tranShuffleLoadsAndGens(inNetwork, shufPerc):
 	pIdx = 0
 	busId = 0
 	for i in inNetwork['bus']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if random.randint(0,100) < shufPerc:
 				if 'Qd' in prop:
@@ -589,7 +594,7 @@ def tranShuffleLoadsAndGens(inNetwork, shufPerc):
 	genParents = []
 	genId = 0
 	for i in inNetwork['gen']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'bus' in prop:
 				genParents.append(i[key]['bus'])
@@ -598,7 +603,7 @@ def tranShuffleLoadsAndGens(inNetwork, shufPerc):
 	genId = 0
 	genIdx = 0
 	for i in inNetwork['gen']:
-		key = str(i.keys()[0])
+		key = str(list(i.keys())[0])
 		for prop in i[key]:
 			if 'bus' in prop:
 				if random.randint(0,100) < shufPerc:

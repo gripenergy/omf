@@ -1,6 +1,7 @@
 ''' Functions for manipulting electrical distribution feeder models. '''
 from __future__ import print_function
 
+from builtins import str
 import datetime, copy, os, re, warnings, networkx as nx, json
 from matplotlib import pyplot as plt
 from functools import reduce
@@ -28,7 +29,7 @@ def sortedWrite(inTree):
 	''' Write out a GLM from a tree, and order all tree objects by their key. 
 	Sometimes Gridlab breaks if you rearrange a GLM.
 	'''
-	sortedKeys = sorted(inTree.keys(), key=int)
+	sortedKeys = sorted(list(inTree.keys()), key=int)
 	output = ''
 	try:
 		for key in sortedKeys:
@@ -39,7 +40,7 @@ def sortedWrite(inTree):
 
 def getMaxKey(inTree):
 	''' Find the largest key value in the tree. We need this because de-embedding causes noncontiguous keys. '''
-	keys = [int(x) for x in inTree.keys()]
+	keys = [int(x) for x in list(inTree.keys())]
 	return max(keys)
 
 def adjustTime(tree, simLength, simLengthUnits, simStartDate):
@@ -95,7 +96,7 @@ def fullyDeEmbed(glmTree):
 def attachRecorders(tree, recorderType, keyToJoin, valueToJoin):
 	''' Walk through a tree an and attach Gridlab recorders to the indicated type of node.'''
 	# HACK: the biggestKey assumption only works for a flat tree or one that has a flat node for the last item...
-	biggestKey = sorted([int(key) for key in tree.keys()])[-1] + 1
+	biggestKey = sorted([int(key) for key in list(tree.keys())])[-1] + 1
 	# Types of recorders we can attach:
 	recorders = {	'Regulator':{'interval':'1', 'parent':'X', 'object':'recorder', 'limit':'0', 'file':'Regulator_Y.csv', 'property':'tap_A,tap_B,tap_C,power_in_A.real,power_in_A.imag,power_in_B.real,power_in_B.imag,power_in_C.real,power_in_C.imag,power_in.real,power_in.imag,phases'},
 					'Voltage':{'interval':'1', 'parent':'X', 'object':'recorder', 'limit':'0', 'file':'Voltage_Y.csv', 'property':'voltage_1.real,voltage_1.imag,voltage_2.real,voltage_2.imag,voltage_12.real,voltage_12.imag'},
@@ -112,7 +113,7 @@ def attachRecorders(tree, recorderType, keyToJoin, valueToJoin):
 	# If the recorder doesn't have a parent don't walk the tree:
 	if 'parent' not in recorders[recorderType]:
 		# What class of objects are we trying to attach to?
-		objectSet = set([tree[x]['object'] for x in tree.keys() if 'object' in tree[x]])
+		objectSet = set([tree[x]['object'] for x in list(tree.keys()) if 'object' in tree[x]])
 		groupClass = recorders[recorderType]['group'][6:]
 		# Only attach if the right objects are there: 
 		if groupClass in objectSet:
@@ -151,7 +152,7 @@ def groupSwingKids(tree):
 				leaf['groupid'] = 'swingKids'
 				swingTypes += [leaf['object']]
 	# attach the collector:
-	biggestKey = sorted([int(key) for key in tree.keys()])[-1] + 1
+	biggestKey = sorted([int(key) for key in list(tree.keys())])[-1] + 1
 	collector = {'interval':'1', 'object':'collector', 'limit':'0', 'group':'X', 'file':'Y', 'property':'sum(power_in.real),sum(power_in.imag)'}
 	for obType in swingTypes:
 		insert = copy.copy(collector)
@@ -165,14 +166,14 @@ def treeToNxGraph(inTree):
 	outGraph = nx.Graph()
 	for key in inTree:
 		item = inTree[key]
-		if 'name' in item.keys():
-			if 'parent' in item.keys():
+		if 'name' in list(item.keys()):
+			if 'parent' in list(item.keys()):
 				outGraph.add_edge(item['name'],item['parent'], attr_dict={'type':'parentChild','phases':1})
 				outGraph.node[item['name']]['type']=item['object']
 				# Note that attached houses via gridEdit.html won't have lat/lon values, so this try is a workaround.
 				try: outGraph.node[item['name']]['pos']=(float(item.get('latitude',0)),float(item.get('longitude',0)))
 				except: outGraph.node[item['name']]['pos']=(0.0,0.0)
-			elif 'from' in item.keys():
+			elif 'from' in list(item.keys()):
 				myPhase = _phaseCount(item.get('phases','AN'))
 				outGraph.add_edge(item['from'],item['to'],attr_dict={'name':item.get('name',''),'type':item['object'],'phases':myPhase})
 			elif item['name'] in outGraph:
@@ -180,7 +181,7 @@ def treeToNxGraph(inTree):
 				outGraph.node[item['name']]['type']=item['object']
 			else:
 				outGraph.add_node(item['name'],attr_dict={'type':item['object']})
-			if 'latitude' in item.keys() and 'longitude' in item.keys():
+			if 'latitude' in list(item.keys()) and 'longitude' in list(item.keys()):
 				try: outGraph.node.get(item['name'],{})['pos']=(float(item['latitude']),float(item['longitude']))
 				except: outGraph.node.get(item['name'],{})['pos']=(0.0,0.0)
 	return outGraph
@@ -193,14 +194,14 @@ def treeToDiNxGraph(inTree):
 		item = inTree[key]
 		if 'object' in item:
 			if item['object'] == 'switch':
-				if 'OPEN' in item.values(): #super hacky
+				if 'OPEN' in list(item.values()): #super hacky
 					continue
-		if 'name' in item.keys():#sometimes network objects aren't named!
-			if 'parent' in item.keys():
+		if 'name' in list(item.keys()):#sometimes network objects aren't named!
+			if 'parent' in list(item.keys()):
 				outGraph.add_edge(item['parent'], item['name'], attr_dict={'type':'parentChild','phases':1, 'length': 0})#jfk. swapped from,to
 				outGraph.node[item['name']]['type']=item['object']
 				outGraph.node[item['name']]['pos']=(float(item.get('latitude',0)),float(item.get('longitude',0)))
-			elif 'from' in item.keys():
+			elif 'from' in list(item.keys()):
 				myPhase = _phaseCount(item.get('phases','AN'))
 				outGraph.add_edge(item['from'],item['to'],attr_dict={'type':item['object'],'phases':myPhase, 'length': float(item.get('length',0))})
 			elif item['name'] in outGraph:
@@ -208,13 +209,13 @@ def treeToDiNxGraph(inTree):
 				outGraph.node[item['name']]['type']=item['object']
 			else:
 				outGraph.add_node(item['name'],attr_dict={'type':item['object']})
-			if 'latitude' in item.keys() and 'longitude' in item.keys():
+			if 'latitude' in list(item.keys()) and 'longitude' in list(item.keys()):
 				outGraph.node.get(item['name'],{})['pos']=(float(item['latitude']),float(item['longitude']))
-		elif 'object' in item.keys() and item['object'] in network_objects:#when name doesn't exist
-			if 'from' in item.keys():
+		elif 'object' in list(item.keys()) and item['object'] in network_objects:#when name doesn't exist
+			if 'from' in list(item.keys()):
 				myPhase = _phaseCount(item.get('phases','AN'))
 				outGraph.add_edge(item['from'],item['to'],attr_dict={'type':item['object'],'phases':myPhase, 'length': float(item.get('length',0))})
-			if 'latitude' in item.keys() and 'longitude' in item.keys():
+			if 'latitude' in list(item.keys()) and 'longitude' in list(item.keys()):
 				outGraph.node.get(item['name'],{})['pos']=(float(item['latitude']),float(item['longitude']))
 	return outGraph
 
@@ -257,7 +258,7 @@ def latLonNxGraph(inGraph, labels=False, neatoLayout=False, showPlot=False):
 			nx.draw_networkx_edges(inGraph,pos,**standArgs)
 	# Draw nodes and optional labels.
 	nx.draw_networkx_nodes(inGraph,pos,
-						   nodelist=pos.keys(),
+						   nodelist=list(pos.keys()),
 						   node_color=[_obToCol(inGraph.node[n].get('type','underground_line')) for n in inGraph],
 						   linewidths=0,
 						   node_size=40)
@@ -293,7 +294,7 @@ def _tokenizeGlm(inputStr, filePath=True):
 	# Tokenize around semicolons, braces and whitespace.
 	tokenized = re.split(r'(;|\}|\{|\s)',data)
 	# Get rid of whitespace strings.
-	basicList = filter(lambda x:x!='' and x!=' ', tokenized)
+	basicList = [x for x in tokenized if x!='' and x!=' ']
 	return basicList
 
 def _parseTokenList(tokenList):
@@ -422,10 +423,10 @@ def _deEmbedOnce(glmTree):
 				else:
 					glmTree[x][y]['name'] = glmTree[x]['name'] + glmTree[x][y]['object'] + str(y)
 				# check for key collision, which should technically be impossible:
-				if y in glmTree.keys():
+				if y in list(glmTree.keys()):
 					print('KEY COLLISION!')
 					z = y
-					while z in glmTree.keys():
+					while z in list(glmTree.keys()):
 						z += 1
 					# put the embedded object back up in the glmTree:
 					glmTree[z] = glmTree[x][y]
@@ -446,10 +447,10 @@ def _deEmbedOnce(glmTree):
 				# get rid of the omfEmbeddedConfigObject string:
 				del glmTree[x][y]['omfEmbeddedConfigObject']
 				# check for key collision, which should technically be impossible BECAUSE Y AND X ARE DIFFERENT INTEGERS IN [1,...,numberOfDicts]:
-				if y in glmTree.keys():
+				if y in list(glmTree.keys()):
 					print('KEY COLLISION!')
 					z = y
-					while z in glmTree.keys():
+					while z in list(glmTree.keys()):
 						z += 1
 					# put the embedded object back up in the glmTree:
 					glmTree[z] = glmTree[x][y]
@@ -487,7 +488,7 @@ def _tests():
 	assert obType is dict
 	# GLM parsing test.
 	smsTree = parse('scratch/simpleMarket/sms.glm', filePath=True)
-	keyLen = len(smsTree.keys())
+	keyLen = len(list(smsTree.keys()))
 	print('Parsed a test glm file with', keyLen, 'keys.')
 	assert keyLen == 41
 	# Recorder Attachment Test
@@ -495,14 +496,14 @@ def _tests():
 		tree = json.load(inFile)['tree']
 	attachRecorders(tree, 'Regulator', 'object', 'regulator')
 	attachRecorders(tree, 'Voltage', 'object', 'node')
-	print('All the objects after recorder attach: ', set([ob.get('object','') for ob in tree.values()]))
+	print('All the objects after recorder attach: ', set([ob.get('object','') for ob in list(tree.values())]))
 	# Testing The De-Embedding
 	with open('static/publicFeeders/13 Node Embedded DO NOT SAVE.omd') as inFile:
 		tree = json.load(inFile)['tree']
 	fullyDeEmbed(tree)
 	embeddedDicts = 0
-	for ob in tree.values():
-		for subOb in ob.values():
+	for ob in list(tree.values()):
+		for subOb in list(ob.values()):
 			if type(subOb) == 'dict':
 				embeddedDicts += 1
 	print('Number of objects still embedded:', embeddedDicts)
@@ -511,14 +512,14 @@ def _tests():
 	with open('static/publicFeeders/13 Node Ref Feeder Flat.omd') as inFile:
 		tree = json.load(inFile)['tree']
 	groupSwingKids(tree)
-	for ob in tree.values():
+	for ob in list(tree.values()):
 		if ob.get('object','') == 'collector':
 			print('Swing collector:', ob)
 	# Time Adjustment Test
 	with open('static/publicFeeders/Simple Market System.omd') as inFile:
 		tree = json.load(inFile)['tree']
 	adjustTime(tree, 100, 'hours', '2000-09-01')
-	for ob in tree.values():
+	for ob in list(tree.values()):
 		if ob.get('object','') in ['recorder','collector']:
 			print('Time-adjusted collector:', ob) 
 	# Graph Test

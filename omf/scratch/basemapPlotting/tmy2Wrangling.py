@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import os, json
 
 if 'tmy2Data.json' in os.listdir('.'):
@@ -19,8 +21,8 @@ else:
 	points = []
 	for tmy in firstLines:
 		breakDown = tmy.split()
-		lat = 1.0*float(breakDown[5]) + float(breakDown[6])/60.0
-		lon = -1.0*float(breakDown[8]) + float(breakDown[9])/60.0
+		lat = 1.0*float(breakDown[5]) + old_div(float(breakDown[6]),60.0)
+		lon = -1.0*float(breakDown[8]) + old_div(float(breakDown[9]),60.0)
 		ele = float(breakDown[10])
 		points.append((lon,lat,ele))
 		#print (lon,lat,ele)

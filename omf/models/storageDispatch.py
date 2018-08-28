@@ -1,6 +1,12 @@
 ''' Calculate the costs and benefits of energy storage from a distribution utility perspective. '''
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import next
+from builtins import filter
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, datetime, subprocess, traceback, csv, re, math
 import multiprocessing
 import collections
@@ -68,7 +74,7 @@ def work(modelDir, inputDict):
 	with open(pJoin(modelDir,"weather.csv")) as inFile:
 		reader = csv.DictReader(inFile)
 		for row in reader:
-			keyList = row.keys()
+			keyList = list(row.keys())
 			for item in keyList:
 				if item.startswith('Time'):
 					time = item
@@ -210,8 +216,8 @@ def work(modelDir, inputDict):
 		productSum += row[0] * row[1]
 		tempSquaredSum += math.pow(row[0],2)
 		demandSquaredSum += math.pow(row[1],2)
-	m = ((length*productSum) - (tempSum*demandSum))/(length*tempSquaredSum - math.pow(tempSum,2))
-	b = ((demandSum*tempSquaredSum)-(tempSum*productSum))/(length*tempSquaredSum-math.pow(tempSum,2))
+	m = old_div(((length*productSum) - (tempSum*demandSum)),(length*tempSquaredSum - math.pow(tempSum,2)))
+	b = old_div(((demandSum*tempSquaredSum)-(tempSum*productSum)),(length*tempSquaredSum-math.pow(tempSum,2)))
 	x1 = 2
 	x2 = 110
 	y1 = m * x1 + b

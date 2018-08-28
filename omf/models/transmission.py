@@ -4,6 +4,8 @@ Tested on Linux and macOS.
 '''
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback, math
 import multiprocessing, platform
 from os.path import join as pJoin
@@ -90,7 +92,7 @@ def work(modelDir, inputDict):
 				lineNo = i
 			# Parse lines.
 			line = line.split(' ')
-			line = filter(lambda a: a!= '', line)
+			line = [a for a in line if a!= '']
 			if todo=="count":
 				if "Buses" in line:
 					busCount = int(line[1])
@@ -132,7 +134,7 @@ def work(modelDir, inputDict):
 				elif i>(lineNo+4+branchCount+1):
 					todo = None
 	# Massage the data.
-	for powerOrVolt in outData['tableData'].keys():
+	for powerOrVolt in list(outData['tableData'].keys()):
 		for i in range(len(outData['tableData'][powerOrVolt][1])):
 			if outData['tableData'][powerOrVolt][1][i]!='-':
 				outData['tableData'][powerOrVolt][1][i]=float(outData['tableData'][powerOrVolt][1][i])
@@ -152,16 +154,16 @@ def work(modelDir, inputDict):
 	plt.gca().set_aspect('equal')
 	busLocations = {}
 	i = 0
-	for busName, busInfo in networkJson["bus"].items():
+	for busName, busInfo in list(networkJson["bus"].items()):
 		y = float(busInfo["latitude"])
 		x = float(busInfo["longitude"])
 		plt.plot([x], [y], marker='o', markersize=12.0, color=mapper.to_rgba(nodeVolts[i]), zorder=5)  
 		busLocations[busName] = [x, y]
 		i = i + 1
-	for genName, genInfo in networkJson["gen"].items():
+	for genName, genInfo in list(networkJson["gen"].items()):
 		x,y =  busLocations[genInfo["bus"]]
 		plt.plot([x], [y], 's', color='gray', zorder=10)
-	for branchName, branchInfo in networkJson["branch"].items():
+	for branchName, branchInfo in list(networkJson["branch"].items()):
 		x1, y1 = busLocations[branchInfo["fbus"]]
 		x2, y2 = busLocations[branchInfo["tbus"]]
 		plt.plot([x1, x2], [y1,y2], color='black', marker = '', zorder=0)

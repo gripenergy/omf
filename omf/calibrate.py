@@ -1,5 +1,10 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import csv, datetime as dt, json, tempfile
 from matplotlib import pyplot as plt
 import os
@@ -129,16 +134,16 @@ def omfCalibrate(workDir, feederPath, scadaPath, simStartDate, simLength, simLen
 		output = gridlabd.runInFilesystem(tree, keepFiles=True, workDir=pJoin(workDir,"gridlabD"))
 		outRealPow = output["caliSub.csv"]["measured_real_power"][trim:simLength]
 		outImagPower = output["caliSub.csv"]["measured_reactive_power"][trim:simLength]
-		outAppPowerKw = [(x[0]**2 + x[1]**2)**0.5/1000 for x in zip(outRealPow, outImagPower)]
+		outAppPowerKw = [old_div((x[0]**2 + x[1]**2)**0.5,1000) for x in zip(outRealPow, outImagPower)]
 		lastFile = "subScada.player"
 		nextFile = "subScadaCalibrated.player"
 		nextPower = outAppPowerKw
-		error = (sum(outRealPow)/1000-sum(scadaSubPower))/sum(scadaSubPower)
+		error = old_div((old_div(sum(outRealPow),1000)-sum(scadaSubPower)),sum(scadaSubPower))
 		iteration = 1
 		print("First error:", error)
 		while abs(error)>calibrateError[0] and iteration<calibrateError[1]:
 			# Run calibration and iterate up to 5 times.
-			SCAL_CONST = sum(scadaSubPower)/sum(nextPower)
+			SCAL_CONST = old_div(sum(scadaSubPower),sum(nextPower))
 			print("Calibrating & running again... Error: %s, Iteration: %s, SCAL_CONST: %s"%(str(round(abs(error*100),6)), str(iteration), round(SCAL_CONST,6)))
 			newPlayData = []
 			with open(pJoin(pJoin(workDir,"gridlabD"), lastFile), "r") as playerFile:
@@ -153,13 +158,13 @@ def omfCalibrate(workDir, feederPath, scadaPath, simStartDate, simLength, simLen
 			nextOutput = gridlabd.runInFilesystem(tree, keepFiles=True, workDir=pJoin(workDir,"gridlabD"))
 			outRealPowIter = nextOutput["caliSubCheck.csv"]["measured_real_power"][trim:simLength]
 			outImagPowerIter = nextOutput["caliSubCheck.csv"]["measured_reactive_power"][trim:simLength]
-			nextAppKw = [(x[0]**2 + x[1]**2)**0.5/1000
+			nextAppKw = [old_div((x[0]**2 + x[1]**2)**0.5,1000)
 				for x in zip(outRealPowIter, outImagPowerIter)]
 			lastFile = nextFile
 			nextFile = "subScadaCalibrated"+str(iteration)+".player"
 			nextPower = nextAppKw
 			# Compute error and iterate.
-			error = (sum(outRealPowIter)/1000-sum(scadaSubPower))/sum(scadaSubPower)
+			error = old_div((old_div(sum(outRealPowIter),1000)-sum(scadaSubPower)),sum(scadaSubPower))
 			iteration+=1
 		else:
 			if iteration==1: outRealPowIter = outRealPow
@@ -167,7 +172,7 @@ def omfCalibrate(workDir, feederPath, scadaPath, simStartDate, simLength, simLen
 		print("Calibration done: Error: %s, Iteration: %s, SCAL_CONST: %s"%(str(round(abs(error*100),2)), str(iteration), round(SCAL_CONST,2)))		
 		return outRealPow, outRealPowIter, lastFile, iteration
 	outRealPow, outRealPowIter, lastFile, iteration = runPowerflowIter(tree,scadaSubPower[trim:simLength])
-	caliPowVectors = [[float(element) for element in scadaSubPower[trim:simLength]], [float(element)/1000 for element in outRealPow], [float(element)/1000 for element in outRealPowIter]]
+	caliPowVectors = [[float(element) for element in scadaSubPower[trim:simLength]], [old_div(float(element),1000) for element in outRealPow], [old_div(float(element),1000) for element in outRealPowIter]]
 	labels = ["scadaSubPower","initialGuess","finalGuess"]
 	colors = ['red','lightblue','blue']
 	chartData = {"Title":"Substation Calibration Check (Iterated "+str(iteration+1)+"X)", "fileName":"caliCheckPlot", "colors":colors,"labels":labels, "timeZone":simStartDate['timeZone']}
@@ -201,7 +206,7 @@ def _processScadaData(workDir,scadaPath, simStartDate, simLengthUnits):
 			timestamp = dt.datetime.strptime(row["timestamp"], "%m/%d/%Y %H:%M:%S")
 			if timestamp >= simStartDate['Date']:
 				if start == 0: start = i
-				power = float(row["power"]) / maxPower
+				power = old_div(float(row["power"]), maxPower)
 				line = timestamp.strftime("%Y-%m-%d %H:%M:%S") + " " + simStartDate['timeZone'] + "," + str(power) + "\n"
 				playFile.write(line)
 	# TODO: add simulation unit parsing.

@@ -1,6 +1,7 @@
 ''' Functions for manipulating electrical transmission network models. '''
 from __future__ import print_function
 
+from builtins import str
 import datetime, copy, os, re, warnings, networkx as nx, json, math, tempfile, shutil, fileinput, webbrowser
 from os.path import join as pJoin
 from matplotlib import pyplot as plt
@@ -60,7 +61,7 @@ def _dictConversion(inputStr, filePath=True):
 				line = line.split('\t')
 			else:
 				line = line.split(' ')
-			line = filter(lambda a: a!= '', line)
+			line = [a for a in line if a!= '']
 			if todo=="version":
 				version = line[-1][1]
 				if version<2:
@@ -105,8 +106,8 @@ def netToNxGraph(inNet):
 	''' Convert network.omt to networkx graph. '''
 	outGraph = nx.Graph()
 	for compType in ['bus','gen','branch']:
-		for idNum, item in inNet[compType].iteritems():
-			if 'fbus' in item.keys():
+		for idNum, item in inNet[compType].items():
+			if 'fbus' in list(item.keys()):
 				outGraph.add_edge(item['fbus'],item['tbus'],attr_dict={'type':'branch'})
 			elif compType=='bus':
 				if item.get('bus_i',0) in outGraph:
@@ -123,7 +124,7 @@ def latlonToNet(inGraph, inNet):
 	cleanG = nx.Graph(inGraph.edges())
 	cleanG.add_nodes_from(inGraph)
 	pos = nx.nx_agraph.graphviz_layout(cleanG, prog='neato')
-	for idnum, item in inNet['bus'].iteritems():
+	for idnum, item in inNet['bus'].items():
 		obName = item.get('bus_i')
 		thisPos = pos.get(obName, None)
 		if thisPos != None:
@@ -204,7 +205,7 @@ def _tests():
 	# Parse mat to dictionary.
 	networkName = 'case9'
 	networkJson = parse(pJoin(omf.omfDir,'solvers','matpower5.1',networkName+'.m'), filePath=True)
-	keyLen = len(networkJson.keys())
+	keyLen = len(list(networkJson.keys()))
 	print('Parsed MAT file with %s buses, %s generators, and %s branches.'%(len(networkJson['bus']),len(networkJson['gen']),len(networkJson['branch'])))
 	# Use python nxgraph to add lat/lon to .omt.json.
 	nxG = netToNxGraph(networkJson)

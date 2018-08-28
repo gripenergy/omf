@@ -27,8 +27,8 @@ def add_external_control(feeder_dict, config_file, filePath, last_key=0):
 
 	# Check if last_key is already in glm dictionary
 	def unused_key(key):
-		if key in feeder_dict.keys():
-			while key in feeder_dict.keys():
+		if key in list(feeder_dict.keys()):
+			while key in list(feeder_dict.keys()):
 				key += 1
 
 		return key

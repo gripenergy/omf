@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import object
 class AlertAgent(object):
 	__slots__ = 'agentName', 'alertTime'
 	# e.g. "2000-00-03 12:00:00"
