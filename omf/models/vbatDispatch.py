@@ -73,8 +73,8 @@ def work(modelDir, inputDict):
 			reader = csv.reader(inFile)
 			for row in reader:
 				demandList.append(float(row[0]))
-	 		if len(demandList) != 8760:
-	 			raise Exception
+			if len(demandList) != 8760:
+				raise Exception
 	except:
 		errorMessage = "CSV file is incorrect format. Please see valid format definition at <a target='_blank' href = 'https://github.com/dpinney/omf/wiki/Models-~-storagePeakShave#demand-file-csv-format'>\nOMF Wiki storagePeakShave - Demand File CSV Format</a>"
 		raise Exception(errorMessage)
@@ -158,8 +158,8 @@ def work(modelDir, inputDict):
 		VBpower[i+1].upBound = P_upper[i]
 	VBenergy = pulp.LpVariable.dicts("EnergyState",((i+1) for i in range(8760)))	# decision variable of VB energy state; dim: 8760 by 1
 	for i in range(8760):
-	    VBenergy[i+1].lowBound = -E_UL[i]
-	    VBenergy[i+1].upBound = E_UL[i]
+		VBenergy[i+1].lowBound = -E_UL[i]
+		VBenergy[i+1].upBound = E_UL[i]
 	Demand = pulp.LpVariable.dicts("MonthlyDemand",((month) for month in month_index),lowBound=0)
 	model += pulp.lpSum([Demand[month] * beta] for month in month_index)# objective function: sum of monthly demand charge
 	for i in range(8760):	# VB energy state as a function of VB power
@@ -167,7 +167,7 @@ def work(modelDir, inputDict):
 		if i==1:
 			model += VBenergy[i] == alpha * e0 + VBpower[i] * deltaT
 		else:
-		    model += VBenergy[i] == alpha * VBenergy[i-1] + VBpower[i] * deltaT
+			model += VBenergy[i] == alpha * VBenergy[i-1] + VBpower[i] * deltaT
 	hourCounter = 0
 	for monthNum in calendar:					#month number in year
 		for x in range(calendar[monthNum]):		#day number-1 in number of days in month

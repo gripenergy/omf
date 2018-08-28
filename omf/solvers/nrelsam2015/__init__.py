@@ -25,7 +25,7 @@ class SSCAPI(object):
 	elif sys.platform == 'darwin':
 		_dll = CDLL(os.path.join(myDir,"ssc64.dylib"))
 #		return _dll
-	elif sys.platform == 'linux2':
+	elif sys.platform.startswith('linux'):
 		_dll = CDLL(os.path.join(myDir,"ssc64.so"))
 #		return _dll
 	else:

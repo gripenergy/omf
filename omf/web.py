@@ -88,7 +88,7 @@ def cryptoRandomString():
 	if 'COOKIE_KEY' in globals():
 		return COOKIE_KEY
 	else:
-		return hashlib.md5(str(random.random())+str(time.time())).hexdigest()
+		return hashlib.md5((str(random.random())+str(time.time())).encode('utf-8')).hexdigest()
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
@@ -102,7 +102,7 @@ def send_link(email, message, u={}):
 		c = boto.ses.connect_to_region("us-east-1",
 			aws_access_key_id="AKIAJLART4NXGCNFEJIQ",
 			aws_secret_access_key=key)
-		reg_key = hashlib.md5(str(time.time())+str(random.random())).hexdigest()
+		reg_key = hashlib.md5((str(random.random())+str(time.time())).encode('utf-8')).hexdigest()
 		u["reg_key"] = reg_key
 		u["timestamp"] = dt.datetime.strftime(dt.datetime.now(), format="%c")
 		u["registered"] = False

@@ -10,7 +10,7 @@ from past.utils import old_div
 import os, feeder, csv, random, math, copy, locale, json, traceback, shutil
 from io import StringIO
 from os.path import join as pJoin
-from .solvers import gridlabd
+from solvers import gridlabd
 from matplotlib import pyplot as plt
 import omf
 

@@ -270,7 +270,7 @@ def _gatherKeyValues(inDict, keyToAvoid):
     return otherKeyValues
 
 def _test():
-    feeder_dictionary = parse('C:\Users\srid966\Desktop\My Work\California Solar Initiative\SCE Feeder Models\Single Sample Feeder/run_winter1.glm')
+    feeder_dictionary = parse(r'C:\Users\srid966\Desktop\My Work\California Solar Initiative\SCE Feeder Models\Single Sample Feeder/run_winter1.glm')
     print(feeder_dictionary)
     feeder_str = sortedWrite(feeder_dictionary)
     glm_file = open('./run_winter1_output2.glm','w')

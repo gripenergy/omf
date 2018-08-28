@@ -72,12 +72,12 @@ def work(modelDir, inputDict):
 			reader = csv.reader(priceFile)
 			rowCount = 0
 			i = 0
-	 		for row in reader:
-	 			dc[i]['price'] = float(row[0])
-	 			i += 1
-	 		if i!= 8760: raise Exception
+			for row in reader:
+				dc[i]['price'] = float(row[0])
+				i += 1
+			if i!= 8760: raise Exception
 	except:
-	 	e = sys.exc_info()[0]
+		e = sys.exc_info()[0]
 		if str(e) == "<type 'exceptions.SystemExit'>":
 			pass
 		else:

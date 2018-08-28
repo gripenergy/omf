@@ -117,7 +117,7 @@ def _addGldToPath():
 		elif sys.platform == 'darwin':
 			# Implement me, maybe.
 			pass
-		elif sys.platform == 'linux2':
+		elif sys.platform.startswith('linux'):
 			binary = _myDir + "/linx64/gridlabd.bin"
 			enviro['GRIDLABD'] = _myDir + "/linx64"
 			enviro['GLPATH'] = _myDir + "/linx64"

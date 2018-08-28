@@ -81,52 +81,52 @@ def work(modelDir, inputDict):
 		for key in list(tree.keys()):
 			# Waterheater Controller properties
 			if ('name' in tree[key]) and (tree[key].get('object') == 'waterheater'):
-		 		totalWH += 1
-	 			gbWH += 1
-	 			# Frequency control parameters
-	 			tree[key]['enable_freq_control'] = 'true'
-	 			tree[key]['measured_frequency'] = 'frequency.value'
-	 			tree[key]['freq_lowlimit'] = 59
-	 			tree[key]['freq_uplimit'] = 61
-	 			tree[key]['heat_mode'] = 'ELECTRIC'
-	 			# tree[key]['average_delay_time'] = 60
-	 			# Voltage control parameters
-	 			# tree[key]['enable_volt_control'] = 'true'
-	 			# tree[key]['volt_lowlimit'] = 240.4
-	 			# tree[key]['volt_uplimit'] = 241.4
-	 			# Lock Mode parameters
-	 			# tree[key]['enable_lock'] = 'temp_lock_enable'
-	 			# tree[key]['lock_STATUS'] = 'temp_lock_status'
-	 			# Controller Priority: a.lock, b.freq, c.volt, d.therm
-	 			tree[key]['controller_priority'] = 3214 #default:therm>lock>freq>volt
-	 			# tree[key]['controller_priority'] = 1423 #freq>therm>volt>lock
-	 			# tree[key]['controller_priority'] = 'control_priority'
-		 		# fix waterheater property demand to water_demand for newer GridLAB-D versions
-		 		if 'demand' in tree[key]:
-		 			# tree[key]['water_demand'] = tree[key]['demand']
-		 			tree[key]['water_demand'] = 'weekday_hotwater*1'
-		 			del tree[key]['demand']
+				totalWH += 1
+				gbWH += 1
+				# Frequency control parameters
+				tree[key]['enable_freq_control'] = 'true'
+				tree[key]['measured_frequency'] = 'frequency.value'
+				tree[key]['freq_lowlimit'] = 59
+				tree[key]['freq_uplimit'] = 61
+				tree[key]['heat_mode'] = 'ELECTRIC'
+				# tree[key]['average_delay_time'] = 60
+				# Voltage control parameters
+				# tree[key]['enable_volt_control'] = 'true'
+				# tree[key]['volt_lowlimit'] = 240.4
+				# tree[key]['volt_uplimit'] = 241.4
+				# Lock Mode parameters
+				# tree[key]['enable_lock'] = 'temp_lock_enable'
+				# tree[key]['lock_STATUS'] = 'temp_lock_status'
+				# Controller Priority: a.lock, b.freq, c.volt, d.therm
+				tree[key]['controller_priority'] = 3214 #default:therm>lock>freq>volt
+				# tree[key]['controller_priority'] = 1423 #freq>therm>volt>lock
+				# tree[key]['controller_priority'] = 'control_priority'
+				# fix waterheater property demand to water_demand for newer GridLAB-D versions
+				if 'demand' in tree[key]:
+					# tree[key]['water_demand'] = tree[key]['demand']
+					tree[key]['water_demand'] = 'weekday_hotwater*1'
+					del tree[key]['demand']
 			# ZIPload Controller properties
 			if ('name' in tree[key]) and (tree[key].get('object') == 'ZIPload'):
-		 		totalZIP += 1
+				totalZIP += 1
 				if tree[key]['name'].startswith('responsive'):
-		 			gbZIP += 1
-			 		# Frequency control parameters
-		 			tree[key]['enable_freq_control'] = 'true'
-		 			tree[key]['measured_frequency'] = 'frequency.value'
-		 			tree[key]['freq_lowlimit'] = 59
-		 			tree[key]['freq_uplimit'] = 61
-		 			# tree[key]['average_delay_time'] = 60
-		 			# Voltage control parameters
-		 			# tree[key]['enable_volt_control'] = 'true'
-		 			# tree[key]['volt_lowlimit'] = 240.4
-		 			# tree[key]['volt_uplimit'] = 241.4
-		 			# Lock Mode parameters
-		 			# tree[key]['enable_lock'] = 'temp_lock_enable'
-		 			# tree[key]['lock_STATUS'] = 'temp_lock_status'
-		 			tree[key]['controller_priority'] = 4321 #default:lock>freq>volt>therm
-		 			# tree[key]['controller_priority'] = 2431 #freq>volt>lock>therm
-		 			# tree[key]['groupid'] = 'fan'
+					gbZIP += 1
+					# Frequency control parameters
+					tree[key]['enable_freq_control'] = 'true'
+					tree[key]['measured_frequency'] = 'frequency.value'
+					tree[key]['freq_lowlimit'] = 59
+					tree[key]['freq_uplimit'] = 61
+					# tree[key]['average_delay_time'] = 60
+					# Voltage control parameters
+					# tree[key]['enable_volt_control'] = 'true'
+					# tree[key]['volt_lowlimit'] = 240.4
+					# tree[key]['volt_uplimit'] = 241.4
+					# Lock Mode parameters
+					# tree[key]['enable_lock'] = 'temp_lock_enable'
+					# tree[key]['lock_STATUS'] = 'temp_lock_status'
+					tree[key]['controller_priority'] = 4321 #default:lock>freq>volt>therm
+					# tree[key]['controller_priority'] = 2431 #freq>volt>lock>therm
+					# tree[key]['groupid'] = 'fan'
 
 	# Attach collector for total network load
 	tree[feeder.getMaxKey(tree)+1] = {'object':'collector', 'group':'"class=triplex_meter"', 'property':'sum(measured_real_power)', 'interval':60, 'file':'allMeterPower.csv'}

@@ -35,7 +35,7 @@ from os.path import join as pJoin
 import warnings
 from io import StringIO
 import sys, os, json, traceback, shutil
-from .solvers import gridlabd
+from solvers import gridlabd
 from pathlib import Path
 import matplotlib
 matplotlib.pyplot.switch_backend('Agg')
@@ -132,12 +132,12 @@ def _findNetworkId(csvFile):
 		return networks[0]
 
 def _isfloat(value):
-  'Helper function for _fixName.'
-  try:
-    float(value)
-    return True
-  except:
-    return False
+	'Helper function for _fixName.'
+	try:
+		float(value)
+		return True
+	except:
+		return False
 
 def _fixName(name):
 	'Function that replaces characters not allowed in name with _'
@@ -949,19 +949,17 @@ def _readCymeShuntCapacitor(feederId, modelDir):
 						cymshuntcapacitor[row.DeviceNumber]['pt_phase'] = "ABCN"
 					elif int(row.CapacitorControlType) == 7:
 						cymshuntcapacitor[row.DeviceNumber]['control'] = 'VOLT'
-                                                #print cymshuntcapacitor[row.DeviceNumber]['voltage_set_low']
+												#print cymshuntcapacitor[row.DeviceNumber]['voltage_set_low']
 						controlledphase = _convertPhase(int(row.ControlledPhase)).replace('N','')
-                                                if row.get('OnValue' + controlledphase) is None:
-                                                  row['OnValue' + controlledphase] = 0
-                                                if row.get('OffValue' + controlledphase) is None:
-                                                  row['OffValue' + controlledphase] = 0
+												if row.get('OnValue' + controlledphase) is None:
+													row['OnValue' + controlledphase] = 0
+												if row.get('OffValue' + controlledphase) is None:
+													row['OffValue' + controlledphase] = 0
 						cymshuntcapacitor[row.DeviceNumber]['voltage_set_low'] = float(row['OnValue'+controlledphase])
 						cymshuntcapacitor[row.DeviceNumber]['voltage_set_high'] = float(row['OffValue'+controlledphase])
 						cymshuntcapacitor[row.DeviceNumber]['pt_phase'] = controlledphase#row.Phase doesn't exist
-                                                if row.ControlledNodeId:
+												if row.ControlledNodeId:
 						  cymshuntcapacitor[row.DeviceNumber]['remote_sense'] = _fixName(row.ControlledNodeId)
-                                                
-                                                
 					else:
 						cymshuntcapacitor[row.DeviceNumber]['control'] = 'MANUAL'
 						cymshuntcapacitor[row.DeviceNumber]['pt_phase'] = "ABCN"
@@ -1872,7 +1870,7 @@ def convertCymeModel(network_db, modelDir, test=False, type=1, feeder_id=None):
 					nodes[cymsectiondevice[device]['parent']]['longitude'] = cymsectiondevice[device]['fromLongitude']
 	# Create overhead line conductor dictionaries
 	ohl_conds = {}
-        print("REACHED")
+	print("REACHED")
 	for olc in OH_conductors:
 		if olc in list(cymeqconductor.keys()):
 			if olc not in list(ohl_conds.keys()):
