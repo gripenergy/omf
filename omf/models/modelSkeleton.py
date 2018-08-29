@@ -5,7 +5,7 @@ from builtins import str
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
 from jinja2 import Template
-from . import __neoMetaModel__
+import __neoMetaModel__
 from __neoMetaModel__ import *
 
 # OMF imports

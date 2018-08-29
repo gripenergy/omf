@@ -10,7 +10,7 @@ from past.utils import old_div
 import json, os, shutil, subprocess, platform, collections, csv, pulp
 from os.path import join as pJoin
 from jinja2 import Template
-from . import __neoMetaModel__
+import __neoMetaModel__
 from __neoMetaModel__ import *
 import matplotlib.pyplot as plt
 import pandas as pd
