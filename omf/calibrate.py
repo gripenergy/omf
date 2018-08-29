@@ -10,8 +10,8 @@ from matplotlib import pyplot as plt
 import os
 from os.path import join as pJoin
 # OMF imports
-from . import feeder
-from .solvers import gridlabd
+import feeder
+from solvers import gridlabd
 import random
 # Plotting
 import numpy as np
