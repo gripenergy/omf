@@ -951,15 +951,15 @@ def _readCymeShuntCapacitor(feederId, modelDir):
 						cymshuntcapacitor[row.DeviceNumber]['control'] = 'VOLT'
 												#print cymshuntcapacitor[row.DeviceNumber]['voltage_set_low']
 						controlledphase = _convertPhase(int(row.ControlledPhase)).replace('N','')
-												if row.get('OnValue' + controlledphase) is None:
-													row['OnValue' + controlledphase] = 0
-												if row.get('OffValue' + controlledphase) is None:
-													row['OffValue' + controlledphase] = 0
+						if row.get('OnValue' + controlledphase) is None:
+							row['OnValue' + controlledphase] = 0
+						if row.get('OffValue' + controlledphase) is None:
+							row['OffValue' + controlledphase] = 0
 						cymshuntcapacitor[row.DeviceNumber]['voltage_set_low'] = float(row['OnValue'+controlledphase])
 						cymshuntcapacitor[row.DeviceNumber]['voltage_set_high'] = float(row['OffValue'+controlledphase])
 						cymshuntcapacitor[row.DeviceNumber]['pt_phase'] = controlledphase#row.Phase doesn't exist
-												if row.ControlledNodeId:
-						  cymshuntcapacitor[row.DeviceNumber]['remote_sense'] = _fixName(row.ControlledNodeId)
+						if row.ControlledNodeId:
+							cymshuntcapacitor[row.DeviceNumber]['remote_sense'] = _fixName(row.ControlledNodeId)
 					else:
 						cymshuntcapacitor[row.DeviceNumber]['control'] = 'MANUAL'
 						cymshuntcapacitor[row.DeviceNumber]['pt_phase'] = "ABCN"
