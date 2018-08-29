@@ -19,7 +19,7 @@ from os.path import split as pSplit
 from jinja2 import Template
 import traceback
 from omf.models import __neoMetaModel__
-from .__neoMetaModel__ import *
+from __neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

@@ -13,7 +13,7 @@ from jinja2 import Template
 from random import random
 import traceback, csv
 from omf.models import __neoMetaModel__
-from .__neoMetaModel__ import *
+from __neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

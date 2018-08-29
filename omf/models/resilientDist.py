@@ -13,7 +13,7 @@ from jinja2 import Template
 from matplotlib import pyplot as plt
 import networkx as nx
 from omf.models import __neoMetaModel__
-from .__neoMetaModel__ import *
+from __neoMetaModel__ import *
 import subprocess, random, webbrowser, multiprocessing
 import pprint as pprint
 import copy

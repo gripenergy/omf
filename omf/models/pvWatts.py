@@ -8,7 +8,7 @@ from past.utils import old_div
 import json, os, sys, tempfile, webbrowser, time, shutil, subprocess, datetime, traceback
 from os.path import join as pJoin
 from omf.models import __neoMetaModel__
-from .__neoMetaModel__ import *
+from __neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder

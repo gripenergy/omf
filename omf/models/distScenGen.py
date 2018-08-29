@@ -11,7 +11,7 @@ from os.path import join as pJoin
 from jinja2 import Template
 from matplotlib import pyplot as plt
 from omf.models import __neoMetaModel__
-from .__neoMetaModel__ import *
+from __neoMetaModel__ import *
 
 # OMF imports 
 import omf.feeder as feeder

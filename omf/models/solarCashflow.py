@@ -11,7 +11,7 @@ from jinja2 import Template
 from operator import sub
 import traceback
 from omf.models import __neoMetaModel__
-from .__neoMetaModel__ import *
+from __neoMetaModel__ import *
 
 # OMF imports
 import omf.feeder as feeder
