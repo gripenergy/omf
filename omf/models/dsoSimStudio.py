@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import networkx as nx
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from __neoMetaModel__ import metadata, heavyProcessing, run, runForeground, renderTemplate, renderAndShow, getStatus, new, cancel, roundSig
 
 # OMF imports 
 import omf.feeder as feeder

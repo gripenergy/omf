@@ -7,7 +7,7 @@ import json, os, shutil, subprocess, platform
 from os.path import join as pJoin
 from jinja2 import Template
 import __neoMetaModel__
-from __neoMetaModel__ import *
+from __neoMetaModel__ import metadata, heavyProcessing, run, runForeground, renderTemplate, renderAndShow, getStatus, new, cancel, roundSig
 
 # Model metadata:
 modelName, template = metadata(__file__)

@@ -14,7 +14,7 @@ from  dateutil.parser import parse
 from numpy import npv
 from jinja2 import Template
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from __neoMetaModel__ import metadata, heavyProcessing, run, runForeground, renderTemplate, renderAndShow, getStatus, new, cancel, roundSig
 
 # Model metadata:
 modelName, template = metadata(__file__)

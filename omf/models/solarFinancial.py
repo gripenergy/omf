@@ -13,7 +13,7 @@ from random import random
 from numpy import irr, npv
 import xlwt, traceback
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from __neoMetaModel__ import metadata, heavyProcessing, run, runForeground, renderTemplate, renderAndShow, getStatus, new, cancel, roundSig
 
 # OMF imports
 import omf.feeder as feeder

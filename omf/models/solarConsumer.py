@@ -12,7 +12,7 @@ from datetime import timedelta as td
 from os.path import join as pJoin
 from jinja2 import Template
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from __neoMetaModel__ import metadata, heavyProcessing, run, runForeground, renderTemplate, renderAndShow, getStatus, new, cancel, roundSig
 import traceback
 
 # OMF imports

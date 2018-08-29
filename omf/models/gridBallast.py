@@ -1,5 +1,5 @@
 ''' Powerflow results for one Gridlab instance. '''
-#from __future__ import absolute_import
+from __future__ import absolute_import
 from __future__ import division
 
 from builtins import str
@@ -20,7 +20,7 @@ from os.path import split as pSplit
 from jinja2 import Template
 import traceback
 from omf.models import __neoMetaModel__
-from __neoMetaModel__ import *
+from __neoMetaModel__ import metadata, heavyProcessing, run, runForeground, renderTemplate, renderAndShow, getStatus, new, cancel, roundSig
 
 # OMF imports
 import omf.feeder as feeder
