@@ -178,8 +178,8 @@ def work(modelDir, inputDict):
 	powerReduc = []
 	energyReduc = []
 	for i in range(1,8761):
-	    powerReduc.append(VBpower[i].varValue)
-	    energyReduc.append(VBenergy[i].varValue)
+		powerReduc.append(VBpower[i].varValue)
+		energyReduc.append(VBenergy[i].varValue)
 	outData["VBpower"] = powerReduc
 	outData["VBenergy"] = energyReduc
 	### Di's Modified dispatch code ends
