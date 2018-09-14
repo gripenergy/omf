@@ -121,7 +121,7 @@ def convertToGFM(gfmInputTemplate, feederModel):
 				newLine['is_new'] = True
 			if line.get('object','') in ['transformer','regulator']: 
 				newLine['is_transformer'] = True
- 			gfmJson['lines'].append(newLine)
+			gfmJson['lines'].append(newLine)
 			lineCount+=1
 	# Line Code Creation
 	xMatrices, rMatrices = {1: [], 2: [], 3: []}, {1: [], 2: [], 3: []}
@@ -281,7 +281,7 @@ def convertToGFM(gfmInputTemplate, feederModel):
 				genSize = gfmInputTemplate['maxDGPerGenerator']
 				isNew = True
 			genObj = dict({
-	 			'id': gens.get('name','')+'_gen', #*
+				'id': gens.get('name','')+'_gen', #*
 				'node_id': busID, #*
 				'is_new': isNew, # Whether or not new generation can be built.
 				'microgrid_cost': gfmInputTemplate['dgUnitCost'], # Per MW capacity of building DG.
