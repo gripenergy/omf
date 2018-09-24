@@ -54,7 +54,10 @@ def _dictConversion(inputStr, filePath=True):
 	for i,line in enumerate(data):
 		if todo!=None:
 			# Parse lines.
-			line = line.translate(None,'\r;\n')
+			if sys.version[0] == 2:
+				line = line.translate(None,'\r;\n')
+			elif sys.version[0] ==3:
+				line = line.translate(str.maketrans('','','\r;\n'))
 			if "]" in line:
 				todo = None
 			if todo in ['bus','gen','bus','branch']:
