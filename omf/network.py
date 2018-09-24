@@ -67,9 +67,14 @@ def _dictConversion(inputStr, filePath=True):
 			line = [a for a in line if a!= '']
 			if todo=="version":
 				version = line[-1][1]
-				if version<2:
-					print("MATPOWER VERSION MUST BE 2: %s"%(version))
-					break
+				if sys.version[0] == 2:
+					if version<2:
+						print("MATPOWER VERSION MUST BE 2: %s"%(version))
+						break
+				if sys.version[0] == 3:
+					if int(version)<2:
+						print("MATPOWER VERSION MUST BE 2: %s"%(version))
+						break
 				todo = None
 			elif todo=="mva":
 				mva = line[-1]
