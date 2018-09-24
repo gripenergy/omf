@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 from builtins import str
-import json, os, sys, tempfile, webbrowser, math, shutil, datetime, omf, multiprocessing, traceback
+import json, os, sys, tempfile, webbrowser, math, shutil, datetime, omf, multiprocessing, traceback, sys
 from jinja2 import Template
 from os.path import join as pJoin
 from os.path import split as pSplit
@@ -104,10 +104,16 @@ def renderTemplate(modelDir, absolutePaths=False, datastoreNames={}):
 
 def renderAndShow(modelDir, datastoreNames={}):
 	''' Render and open a template (blank or with output) in a local browser. '''
-	with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as temp:
-		temp.write(renderTemplate(modelDir, absolutePaths=True))
-		temp.flush()
-		webbrowser.open("file://" + temp.name)
+	if sys.version[0] == 3:
+		with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w') as temp:
+			temp.write(renderTemplate(modelDir, absolutePaths=True))
+			temp.flush()
+			webbrowser.open("file://" + temp.name)
+	else:
+		with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as temp:
+			temp.write(renderTemplate(modelDir, absolutePaths=True))
+			temp.flush()
+			webbrowser.open("file://" + temp.name)
 
 def getStatus(modelDir):
 	''' Is the model stopped, running or finished? '''
