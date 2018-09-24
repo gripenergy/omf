@@ -105,8 +105,8 @@ def renderTemplate(modelDir, absolutePaths=False, datastoreNames={}):
 def renderAndShow(modelDir, datastoreNames={}):
 	''' Render and open a template (blank or with output) in a local browser. '''
 	if sys.version[0] == 3:
-		with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w') as temp:
-			temp.write(renderTemplate(modelDir, absolutePaths=True))
+		with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as temp:
+			temp.write(renderTemplate(modelDir, absolutePaths=True).encode())
 			temp.flush()
 			webbrowser.open("file://" + temp.name)
 	else:
