@@ -14,7 +14,9 @@ RUN cd /home/omf/; python install.py
 
 # Run the OMF
 VOLUME ["/home/omf/omf/"]
+
 WORKDIR /home/omf/omf/
+COPY . .
 ENTRYPOINT ["python"]
 CMD ["web.py"]
 
