@@ -960,7 +960,7 @@ def serve_production():
 	- Make sure to run this file with the -m (module) flag
 	- One way to kill gunicorn is with $ ps -ef | awk '/gunicorn/ {print $2}' | xargs kill
 	'''
-	os.chdir(os.path.dirname(__file__))
+	os.chdir(os.path.dirname(os.path.abspath(__file__)))
 	subprocess.call(["gunicorn", "-w", "4", "-b", "0.0.0.0:5100", "--preload", "-k sync", "grip:app"])
 
 

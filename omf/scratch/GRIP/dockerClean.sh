@@ -1,4 +1,4 @@
 #!/bin/sh
-docker stop omf_grip_run
-docker rm omf_grip_run
-#docker rmi omf_grip
+docker stop omf-grip-run
+docker rm omf-grip-run
+#docker rmi nreca/omf
